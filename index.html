@@ -538,7 +538,7 @@
     <header class="top">
       <div>
         <h1>Cuti &amp; Izin</h1>
-        <p>Pengajuan cuti, sakit, lembur, dan tukar shift karyawan Nuanu</p>
+        <p>Pengajuan cuti, sakit, CT, dan tukar shift karyawan Nuanu</p>
       </div>
     </header>
 
@@ -613,11 +613,6 @@
             <span class="action-text"><strong>Sakit</strong><span>Wajib melampirkan surat dokter</span></span>
             <span class="action-arrow" aria-hidden="true">›</span>
           </button>
-          <button class="action" type="button" data-open="overtime">
-            <span class="action-icon" aria-hidden="true">⏱️</span>
-            <span class="action-text"><strong>Lembur</strong><span>Tekan mulai saat lembur, selesai saat pulang</span></span>
-            <span class="action-arrow" aria-hidden="true">›</span>
-          </button>
           <button class="action" type="button" data-open="ct">
             <span class="action-icon" aria-hidden="true">🕒</span>
             <span class="action-text"><strong>Klaim CT</strong><span>Pakai jam lembur untuk masuk siang atau pulang awal</span></span>
@@ -650,7 +645,6 @@
         <div class="chips" role="group" aria-label="Filter riwayat">
           <button class="chip" type="button" data-filter="all" aria-pressed="true">Semua</button>
           <button class="chip" type="button" data-filter="leave" aria-pressed="false">Cuti &amp; sakit</button>
-          <button class="chip" type="button" data-filter="ot" aria-pressed="false">Lembur</button>
           <button class="chip" type="button" data-filter="ct" aria-pressed="false">CT</button>
           <button class="chip" type="button" data-filter="swap" aria-pressed="false">Tukar shift</button>
         </div>
@@ -731,28 +725,6 @@
 
       <button class="btn btn-primary" type="button" id="sickSubmit">Kirim laporan sakit</button>
       <div class="msg" id="sickMsg"></div>
-    </div>
-  </dialog>
-
-  <!-- ================= FORM: LEMBUR ================= -->
-  <dialog class="sheet" id="sheet-overtime" aria-labelledby="otTitle">
-    <div class="sheet-inner">
-      <div class="sheet-head">
-        <h2 id="otTitle">Lembur</h2>
-        <button class="sheet-close" type="button" data-close aria-label="Tutup">✕</button>
-      </div>
-      <p class="sheet-sub" data-who></p>
-
-      <div class="ot-state" id="otState">Mengecek status lembur…</div>
-
-      <label for="otNote">Keterangan (opsional)</label>
-      <textarea id="otNote" placeholder="Contoh: antar tamu event malam"></textarea>
-
-      <div class="ot-buttons">
-        <button class="btn btn-ok" type="button" id="otStart">Mulai lembur</button>
-        <button class="btn btn-stop" type="button" id="otEnd">Selesai lembur</button>
-      </div>
-      <div class="msg" id="otMsg"></div>
     </div>
   </dialog>
 
@@ -1138,7 +1110,6 @@
         if (!$('sickStart').value) $('sickStart').value = todayIso();
         if (!$('sickEnd').value) $('sickEnd').value = $('sickStart').value;
       },
-      overtime: function () { clearMsg($('otMsg')); renderOvertimeState(); },
       ct: function () { clearMsg($('ctMsg')); if (!$('ctDate').value) $('ctDate').value = todayIso(); },
       swap: function () {
         clearMsg($('swapMsg'));
@@ -1265,54 +1236,6 @@
         showMsg(msg, 'error', err.message);
       }).finally(function () { busy(btn, false); });
     });
-
-    // ---------- Lembur ----------
-    function openOvertime() {
-      if (!featureData) return null;
-      return featureData.overtime.find(function (o) { return String(o.status).toUpperCase() === 'OPEN'; }) || null;
-    }
-
-    function renderOvertimeState() {
-      const box = $('otState');
-      const apply = function () {
-        const open = openOvertime();
-        if (open) {
-          box.className = 'ot-state running';
-          box.textContent = 'Lembur sedang berjalan sejak ' + (open.start || '-') + '. Tekan Selesai lembur saat sudah selesai.';
-          $('otStart').disabled = true;
-          $('otEnd').disabled = false;
-        } else {
-          box.className = 'ot-state';
-          box.textContent = 'Tidak ada lembur yang berjalan. Tekan Mulai lembur saat mulai bekerja di luar jam.';
-          $('otStart').disabled = false;
-          $('otEnd').disabled = true;
-        }
-      };
-      if (featureData) apply();
-      else { box.textContent = 'Mengecek status lembur…'; loadFeatureData().then(apply); }
-    }
-
-    function overtime(action) {
-      const msg = $('otMsg');
-      const btn = action === 'START' ? $('otStart') : $('otEnd');
-      busy(btn, true, 'Menyimpan…');
-      clearMsg(msg);
-      api('recordOvertimeAction', current.id, action, $('otNote').value.trim()).then(function (res) {
-        $('otNote').value = '';
-        return loadFeatureData().then(function () {
-          busy(btn, false);
-          renderOvertimeState();
-          showMsg(msg, 'success', res.message || 'Tersimpan.');
-          leaveHistory = null;
-        });
-      }).catch(function (err) {
-        busy(btn, false);
-        renderOvertimeState();
-        showMsg(msg, 'error', err.message);
-      });
-    }
-    $('otStart').addEventListener('click', function () { overtime('START'); });
-    $('otEnd').addEventListener('click', function () { overtime('END'); });
 
     // ---------- CT ----------
     $('ctHours').addEventListener('input', function () {
@@ -1480,15 +1403,6 @@
               ['Diproses oleh', r.approvedBy],
               ['Waktu proses', r.approvedTime],
               ['Alasan ditolak', r.rejectReason]
-            ]) });
-        });
-      }
-      if (featureData && (f === 'all' || f === 'ot')) {
-        featureData.overtime.forEach(function (r) {
-          out.push({ key: String(r.start || '').split(' ')[0].split('/').reverse().join('-'), html: item('Lembur',
-            (r.start || '-') + (r.hours ? ' · ' + r.hours + ' jam' : ''), r.status, [
-              ['ID', r.id], ['Mulai', r.start], ['Selesai', r.end], ['Durasi', r.hours ? r.hours + ' jam' : ''],
-              ['Keterangan', r.note], ['Diproses oleh', r.approver], ['Waktu proses', r.processed], ['Catatan', r.decisionNote]
             ]) });
         });
       }

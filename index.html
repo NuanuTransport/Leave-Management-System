@@ -615,7 +615,7 @@
           </button>
           <button class="action" type="button" data-open="ct">
             <span class="action-icon" aria-hidden="true">🕒</span>
-            <span class="action-text"><strong>Klaim CT</strong><span>Pakai jam lembur untuk masuk siang atau pulang awal</span></span>
+            <span class="action-text"><strong>Klaim CT</strong><span id="ctActionSub">Pakai jam lembur untuk masuk siang atau pulang awal</span></span>
             <span class="action-arrow" aria-hidden="true">›</span>
           </button>
           <button class="action" type="button" data-open="swap">
@@ -673,7 +673,6 @@
         <option value="MR">MR - Cuti Menikah</option>
         <option value="BL">BL - Cuti Kedukaan</option>
         <option value="EO">EO - Libur Tambahan</option>
-        <option value="CT">CT - Klaim Lembur</option>
       </select>
 
       <div class="row-2">
@@ -737,6 +736,8 @@
       </div>
       <p class="sheet-sub" data-who></p>
 
+      <div class="ot-state" id="ctBalanceBox">Mengecek saldo lembur…</div>
+
       <label for="ctDate">Tanggal pakai CT</label>
       <input type="date" id="ctDate">
 
@@ -748,8 +749,8 @@
         <div>
           <label for="ctTiming">Dipakai untuk</label>
           <select id="ctTiming">
-            <option value="LATE_START">Masuk lebih siang</option>
-            <option value="EARLY_LEAVE">Pulang lebih awal</option>
+            <option value="LATE_START">Masuk siang</option>
+            <option value="EARLY_LEAVE">Pulang awal</option>
             <option value="FULL_DAY">Satu hari penuh</option>
           </select>
         </div>
@@ -814,7 +815,7 @@
     // ==================================================
     // GANTI DENGAN URL /exec DARI DEPLOYMENT APPS SCRIPT
     // ==================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec';
+    const API_URL = 'TEMPEL_URL_EXEC_DI_SINI';
 
     // ---------- Panggil Apps Script ----------
     function api(fn) {
@@ -1003,10 +1004,12 @@
         remember(current.id);
         leaveHistory = null;
         featureData = null;
+        ctBalance = null;
         clearMsg($('searchMsg'));
         renderEmployee();
         loadBalance();
         loadFeatureData();
+        loadCTBalance();
       }).catch(function (err) {
         showMsg($('searchMsg'), 'error', err.message);
         forget();
@@ -1110,7 +1113,12 @@
         if (!$('sickStart').value) $('sickStart').value = todayIso();
         if (!$('sickEnd').value) $('sickEnd').value = $('sickStart').value;
       },
-      ct: function () { clearMsg($('ctMsg')); if (!$('ctDate').value) $('ctDate').value = todayIso(); },
+      ct: function () {
+        clearMsg($('ctMsg'));
+        if (!$('ctDate').value) $('ctDate').value = todayIso();
+        renderCTBalance();
+        loadCTBalance();
+      },
       swap: function () {
         clearMsg($('swapMsg'));
         $('swapHint').textContent = current.position
@@ -1146,6 +1154,7 @@
       leaveHistory = null;
       loadBalance();
       loadFeatureData();
+      loadCTBalance();
     }
 
     // ---------- Cuti ----------
@@ -1244,6 +1253,52 @@
       else if ($('ctTiming').value === 'FULL_DAY') $('ctTiming').value = 'LATE_START';
     });
 
+    let ctBalance = null;
+
+    function loadCTBalance() {
+      if (!current) return Promise.resolve(null);
+      const id = current.id;
+      return api('getCTBalance', id).then(function (b) {
+        if (!current || current.id !== id) return null;
+        ctBalance = b;
+        renderCTBalance();
+        return b;
+      }).catch(function () {
+        ctBalance = null;
+        renderCTBalance();
+        return null;
+      });
+    }
+
+    function renderCTBalance() {
+      const box = $('ctBalanceBox');
+      const sub = $('ctActionSub');
+      const btn = $('ctSubmit');
+      if (!ctBalance) {
+        box.className = 'ot-state';
+        box.textContent = 'Mengecek saldo lembur…';
+        sub.textContent = 'Pakai jam lembur untuk masuk siang atau pulang awal';
+        return;
+      }
+      const avail = Number(ctBalance.availableHours || 0);
+      if (avail <= 0) {
+        box.className = 'ot-state running';
+        box.textContent = Number(ctBalance.overtimeHours || 0) <= 0
+          ? 'Belum ada lembur yang disetujui, jadi CT belum bisa diajukan.'
+          : 'Saldo lembur sudah habis terpakai' + (ctBalance.ctPendingHours ? ' (' + ctBalance.ctPendingHours + ' jam masih menunggu persetujuan)' : '') + '.';
+        sub.textContent = 'Belum ada saldo lembur';
+        btn.disabled = true;
+        $('ctHours').removeAttribute('max');
+      } else {
+        box.className = 'ot-state';
+        box.textContent = 'Saldo lembur tersedia: ' + avail + ' jam' +
+          (ctBalance.ctPendingHours ? ' (' + ctBalance.ctPendingHours + ' jam sedang menunggu persetujuan)' : '') + '.';
+        sub.textContent = 'Saldo lembur: ' + avail + ' jam';
+        btn.disabled = false;
+        $('ctHours').max = String(Math.min(24, avail));
+      }
+    }
+
     $('ctSubmit').addEventListener('click', function () {
       const msg = $('ctMsg');
       const date = $('ctDate').value;
@@ -1253,8 +1308,11 @@
       if (!date) return showMsg(msg, 'error', 'Isi tanggal pakai CT.');
       if (!(hours > 0) || hours > 24) return showMsg(msg, 'error', 'Jumlah jam harus lebih dari 0 dan maksimal 24.');
       if (hours >= 8 && timing !== 'FULL_DAY') return showMsg(msg, 'error', 'CT 8 jam atau lebih harus dipilih Satu hari penuh.');
-      if (hours < 8 && timing === 'FULL_DAY') return showMsg(msg, 'error', 'CT kurang dari 8 jam pilih Masuk lebih siang atau Pulang lebih awal.');
+      if (hours < 8 && timing === 'FULL_DAY') return showMsg(msg, 'error', 'CT kurang dari 8 jam pilih Masuk siang atau Pulang awal.');
       if (!reason) return showMsg(msg, 'error', 'Tulis keterangan CT.');
+      if (ctBalance && hours > Number(ctBalance.availableHours || 0)) {
+        return showMsg(msg, 'error', 'Saldo lembur tidak cukup. Sisa saldo: ' + ctBalance.availableHours + ' jam.');
+      }
 
       const btn = $('ctSubmit');
       busy(btn, true);
@@ -1265,7 +1323,7 @@
         afterSubmit($('sheet-ct'), 'Klaim CT terkirim (' + res.requestId + '). Menunggu persetujuan.');
       }).catch(function (err) {
         showMsg(msg, 'error', err.message);
-      }).finally(function () { busy(btn, false); });
+      }).finally(function () { busy(btn, false); renderCTBalance(); });
     });
 
     // ---------- Tukar shift ----------

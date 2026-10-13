@@ -1,0 +1,6333 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <base target="_top">
+
+
+
+  <meta name="viewport"
+
+        content="width=device-width, initial-scale=1">
+
+
+
+  <title>Pengajuan Cuti Karyawan</title>
+
+
+
+  <style>
+
+
+
+    * {
+
+      box-sizing: border-box;
+
+    }
+
+
+
+    body {
+
+      margin: 0;
+
+      padding: 20px;
+
+      background: #f3f6fa;
+
+      font-family: Arial, sans-serif;
+
+      color: #1f2937;
+
+    }
+
+
+
+    .container {
+
+      max-width: 850px;
+
+      margin: auto;
+
+    }
+
+
+
+    .card {
+
+      background: white;
+
+      border-radius: 14px;
+
+      padding: 20px;
+
+      margin-bottom: 18px;
+
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+
+    }
+
+
+
+    .header h1 {
+
+      margin: 0 0 6px;
+
+      font-size: 23px;
+
+    }
+
+
+
+    .header p {
+
+      margin: 0;
+
+      color: #64748b;
+
+    }
+
+
+
+    h2 {
+
+      margin-top: 0;
+
+      font-size: 18px;
+
+    }
+
+
+
+    label {
+
+      display: block;
+
+      margin-top: 14px;
+
+      margin-bottom: 6px;
+
+      font-weight: bold;
+
+      font-size: 14px;
+
+    }
+
+
+
+    input,
+
+    select,
+
+    textarea {
+
+      width: 100%;
+
+      padding: 12px;
+
+      border: 1px solid #d1d5db;
+
+      border-radius: 9px;
+
+      font-size: 14px;
+
+      font-family: Arial, sans-serif;
+
+      background: white;
+
+    }
+
+
+
+    textarea {
+
+      min-height: 90px;
+
+      resize: vertical;
+
+    }
+
+
+
+    button {
+
+      border: none;
+
+      border-radius: 9px;
+
+      padding: 12px 18px;
+
+      cursor: pointer;
+
+      font-weight: bold;
+
+      font-size: 14px;
+
+    }
+
+
+
+    button:disabled {
+
+      opacity: .6;
+
+      cursor: not-allowed;
+
+    }
+
+
+
+    .btn-search {
+
+      background: #2563eb;
+
+      color: white;
+
+    }
+
+
+
+    .btn-leave {
+
+      background: #2563eb;
+
+      color: white;
+
+      width: 100%;
+
+      margin-top: 15px;
+
+    }
+
+
+
+    .btn-sick {
+
+      background: #16a34a;
+
+      color: white;
+
+      width: 100%;
+
+      margin-top: 15px;
+
+    }
+
+
+
+    .btn-submit {
+
+      background: #111827;
+
+      color: white;
+
+      width: 100%;
+
+      margin-top: 18px;
+
+    }
+
+
+
+    .btn-back {
+
+      background: #e5e7eb;
+
+      color: #374151;
+
+      width: 100%;
+
+      margin-top: 10px;
+
+    }
+
+
+
+    .btn-approve {
+
+      background: #16a34a;
+
+      color: white;
+
+    }
+
+
+
+    .btn-reject {
+
+      background: #dc2626;
+
+      color: white;
+
+      margin-left: 6px;
+
+    }
+
+
+
+    .employee-info {
+
+      background: #f8fafc;
+
+      border: 1px solid #e2e8f0;
+
+      border-radius: 10px;
+
+      padding: 14px;
+
+      margin-top: 18px;
+
+    }
+
+
+
+    .employee-info div {
+
+      margin-bottom: 7px;
+
+    }
+
+
+
+    .employee-info div:last-child {
+
+      margin-bottom: 0;
+
+    }
+
+
+
+    .employee-info strong {
+
+      display: inline-block;
+
+      min-width: 115px;
+
+    }
+
+
+
+    .result {
+
+      display: none;
+
+      margin-top: 18px;
+
+    }
+
+
+
+    .menu {
+
+      display: none;
+
+      margin-top: 20px;
+
+    }
+
+
+
+    .form-section {
+
+      display: none;
+
+    }
+
+
+
+    .message {
+
+      margin-top: 14px;
+
+      padding: 10px;
+
+      border-radius: 8px;
+
+      display: none;
+
+      font-size: 14px;
+
+    }
+
+
+
+    .message.success {
+
+      display: block;
+
+      background: #ecfdf5;
+
+      color: #047857;
+
+      border: 1px solid #a7f3d0;
+
+    }
+
+
+
+    .message.error {
+
+      display: block;
+
+      background: #fef2f2;
+
+      color: #b91c1c;
+
+      border: 1px solid #fecaca;
+
+    }
+
+
+
+    .success-box {
+
+      margin-top: 18px;
+
+      padding: 14px;
+
+      background: #f8fafc;
+
+      border: 1px solid #d1d5db;
+
+      border-radius: 10px;
+
+    }
+
+
+
+    .status {
+
+      display: inline-block;
+
+      padding: 4px 9px;
+
+      border-radius: 20px;
+
+      font-size: 12px;
+
+      font-weight: bold;
+
+    }
+
+
+
+    .status-pending {
+
+      background: #fef3c7;
+
+      color: #92400e;
+
+    }
+
+    .status-approved { background: #dcfce7; color: #166534; }
+
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+
+    .btn-history { background: #475569; color: white; width: 100%; margin-top: 15px; }
+
+
+
+
+    .manager-header {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      gap: 10px;
+
+      margin-bottom: 15px;
+
+    }
+
+
+
+    .manager-header h2 {
+
+      margin: 0;
+
+    }
+
+
+
+    #managerSection {
+
+      display: none;
+
+    }
+
+
+
+    .request-card {
+
+      border: 1px solid #dbe2ea;
+
+      border-radius: 12px;
+
+      padding: 16px;
+
+      margin-bottom: 15px;
+
+      background: #fff;
+
+    }
+
+
+
+    .request-card:last-child {
+
+      margin-bottom: 0;
+
+    }
+
+
+
+    .request-title {
+
+      font-size: 16px;
+
+      font-weight: bold;
+
+      margin-bottom: 12px;
+
+    }
+
+
+
+    .request-row {
+
+      margin-bottom: 7px;
+
+      font-size: 14px;
+
+    }
+
+
+
+    .request-row strong {
+
+      display: inline-block;
+
+      min-width: 125px;
+
+    }
+
+
+
+    .request-actions {
+
+      margin-top: 15px;
+
+      padding-top: 12px;
+
+      border-top: 1px solid #e5e7eb;
+
+    }
+
+
+
+    .empty {
+
+      text-align: center;
+
+      padding: 25px 10px;
+
+      color: #64748b;
+
+      background: #f8fafc;
+
+      border-radius: 10px;
+
+    }
+
+
+
+    .loading {
+
+      text-align: center;
+
+      padding: 20px;
+
+      color: #64748b;
+
+    }
+
+
+
+    
+
+    .pending-notification {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-size: 14px;
+    }
+
+    .pending-notification strong {
+      font-size: 15px;
+    }
+
+    .pending-notification .count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 30px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #ea580c;
+      color: white;
+      font-weight: bold;
+    }
+
+    .pending-notification.empty {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #64748b;
+    }
+
+    .pending-notification.empty .count {
+      background: #94a3b8;
+    }
+.top-menu {
+
+      display: flex;
+
+      gap: 10px;
+
+      margin-bottom: 18px;
+
+    }
+
+
+
+    .top-menu button {
+
+      flex: 1;
+
+    }
+
+
+
+    .employee-tab {
+
+      background: #2563eb;
+
+      color: white;
+
+    }
+
+
+
+    .manager-tab {
+
+      background: #7c3aed;
+
+      color: white;
+
+    }
+@media (max-width: 600px) {
+
+
+
+      body {
+
+        padding: 10px;
+
+      }
+
+
+
+      .card {
+
+        padding: 15px;
+
+      }
+
+
+
+      .request-actions button {
+
+        width: 100%;
+
+        margin: 5px 0 0;
+
+      }
+
+
+
+      .top-menu {
+
+        flex-direction: column;
+
+      }
+
+
+
+      .request-row strong {
+
+        display: block;
+
+        margin-bottom: 2px;
+
+      }
+
+
+
+    }
+
+
+
+
+    .employee-picker { position: relative; width: 100%; }
+    .employee-suggestions {
+      position: absolute; z-index: 1000; top: calc(100% + 4px); left: 0; right: 0;
+      max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1;
+      border-radius: 10px; box-shadow: 0 8px 22px rgba(15,23,42,.14);
+    }
+    .employee-suggestion {
+      display: block; width: 100%; text-align: left; padding: 13px 14px; border-radius: 0;
+      background: #fff; color: #1f2937; border-bottom: 1px solid #e5e7eb;
+      font-weight: 500; line-height: 1.4;
+    }
+    .employee-suggestion:last-child { border-bottom: 0; }
+    .employee-suggestion:hover, .employee-suggestion:focus { background: #eff6ff; }
+    .employee-search-button { width: 100%; margin-top: 10px; min-height: 46px; }
+
+    @media (max-width: 600px) {
+
+
+
+      body {
+
+        padding: 10px;
+
+      }
+
+
+
+      .card {
+
+        padding: 15px;
+
+      }
+
+
+
+      .request-actions button {
+
+        width: 100%;
+
+        margin: 5px 0 0;
+
+      }
+
+
+
+      .top-menu {
+
+        flex-direction: column;
+
+      }
+
+
+
+      .request-row strong {
+
+        display: block;
+
+        margin-bottom: 2px;
+
+      }
+
+
+
+    }
+
+
+
+  
+
+    /* ===== MOBILE OPTIMIZATION ===== */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    img, input, select, textarea, button {
+      max-width: 100%;
+    }
+
+    input, select, textarea {
+      font-size: 16px;
+      min-height: 48px;
+    }
+
+    button {
+      min-height: 46px;
+      touch-action: manipulation;
+    }
+
+    .request-row,
+    .employee-info,
+    .success-box,
+    .message {
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+        font-size: 16px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: none;
+      }
+
+      .card {
+        width: 100%;
+        padding: 16px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      h2 {
+        font-size: 20px;
+        line-height: 1.3;
+      }
+
+      label {
+        font-size: 16px;
+        line-height: 1.35;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 13px 12px;
+        font-size: 16px;
+        border-radius: 10px;
+      }
+
+      textarea {
+        min-height: 110px;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 13px 14px;
+        border-radius: 10px;
+      }
+
+      .top-menu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .top-menu button {
+        width: 100%;
+        min-width: 0;
+        padding: 12px 8px;
+        font-size: 15px;
+      }
+
+      #employeeSection label[for="employeeId"] + div {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+      }
+
+      #employeeId {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      #searchButton {
+        flex: 0 0 auto;
+        min-width: 76px;
+      }
+
+      .employee-info {
+        padding: 13px;
+        font-size: 15px;
+      }
+
+      .employee-info strong {
+        display: block;
+        min-width: 0;
+        margin-bottom: 3px;
+        font-size: 14px;
+        color: #475569;
+      }
+
+      .employee-info div {
+        margin-bottom: 12px;
+        line-height: 1.45;
+      }
+
+      .request-card {
+        padding: 14px;
+        border-radius: 12px;
+      }
+
+      .request-title {
+        font-size: 17px;
+        line-height: 1.4;
+      }
+
+      .request-row {
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .request-row strong {
+        display: block;
+        min-width: 0;
+        margin-bottom: 2px;
+      }
+
+      .request-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .request-actions button,
+      .btn-leave,
+      .btn-sick,
+      .btn-submit,
+      .btn-back,
+      .btn-history {
+        width: 100%;
+        margin: 8px 0 0;
+      }
+
+      .btn-reject {
+        margin-left: 0;
+      }
+
+      .manager-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .pending-notification {
+        align-items: flex-start;
+        font-size: 15px;
+      }
+
+      .status {
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 5px;
+      }
+
+      .card {
+        padding: 12px;
+      }
+
+      .top-menu button {
+        font-size: 14px;
+        padding: 11px 5px;
+      }
+
+      #searchButton {
+        min-width: 66px;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+  </style>
+
+  <script>
+    // ==================================================
+    // GANTI DENGAN URL /exec DARI DEPLOYMENT APPS SCRIPT
+    // ==================================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec';
+
+    // Pengganti google.script.run: semua pemanggilan diteruskan ke Apps Script lewat fetch.
+    (function () {
+      function makeRunner(onSuccess, onFailure, userObject) {
+        return new Proxy({}, {
+          get: function (_, name) {
+            if (name === 'withSuccessHandler') return function (fn) { return makeRunner(fn, onFailure, userObject); };
+            if (name === 'withFailureHandler') return function (fn) { return makeRunner(onSuccess, fn, userObject); };
+            if (name === 'withUserObject') return function (obj) { return makeRunner(onSuccess, onFailure, obj); };
+            return function () {
+              var args = Array.prototype.slice.call(arguments);
+              fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ fn: String(name), args: args })
+              })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                  if (res.ok) {
+                    if (onSuccess) onSuccess(res.result, userObject);
+                  } else {
+                    var err = new Error(res.error || 'Terjadi kesalahan');
+                    if (onFailure) onFailure(err, userObject); else console.error(err);
+                  }
+                })
+                .catch(function (err) {
+                  var e = new Error('Tidak dapat terhubung ke server. Periksa koneksi atau URL API.');
+                  console.error(err);
+                  if (onFailure) onFailure(e, userObject);
+                });
+            };
+          }
+        });
+      }
+      window.google = window.google || {};
+      window.google.script = { run: makeRunner(null, null, undefined) };
+    })();
+  </script>
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="container">
+
+
+
+  <!-- ==================================================
+
+       TOP MENU
+
+       ================================================== -->
+
+
+
+  <div class="card">
+
+
+
+    <div class="top-menu">
+
+
+
+      <button
+
+        class="employee-tab"
+
+        onclick="showEmployeePage()">
+
+
+
+        👤 Karyawan
+
+
+
+      </button>
+
+
+
+      <button
+
+        class="manager-tab"
+
+        onclick="showManagerPage()">
+
+
+
+        👨‍💼 Manajer
+
+
+
+      </button>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+
+
+  <!-- ==================================================
+
+       EMPLOYEE PAGE
+
+       ================================================== -->
+
+
+
+  <div id="employeePage">
+
+
+
+    <div class="card header">
+
+
+
+      <h1>
+
+        Pengajuan Cuti Karyawan
+
+      </h1>
+
+
+
+      <p>
+
+        Pengajuan cuti dan sakit karyawan
+
+      </p>
+
+
+
+    </div>
+
+
+
+
+
+    <!-- DATA KARYAWAN -->
+
+
+
+    <div
+
+      class="card"
+
+      id="employeeSection">
+
+
+
+      <h2>
+
+        1. Data Karyawan
+
+      </h2>
+
+
+
+      <div
+
+        id="searchMessage"
+
+        class="message">
+
+      </div>
+
+
+
+      <label for="employeeId">Tampilkan Data Karyawan *</label>
+
+      <div class="employee-picker">
+        <input type="text" id="employeeId" autocomplete="off"
+          placeholder="Ketik ID atau nama karyawan..."
+          aria-label="Cari karyawan berdasarkan ID atau nama">
+        <div id="employeeSuggestions" class="employee-suggestions" role="listbox" style="display:none;"></div>
+      </div>
+
+      <button id="searchButton" class="btn-search employee-search-button" onclick="searchEmployee()">
+        Tampilkan Data Karyawan
+      </button>
+
+
+
+      <div
+
+        id="employeeResult"
+
+        class="result">
+
+
+
+        <div class="employee-info">
+
+
+
+          <div>
+
+            <strong>ID Karyawan</strong>
+
+            <span id="employeeIdResult"></span>
+
+          </div>
+
+
+
+          <div>
+
+            <strong>Nama</strong>
+
+            <span id="employeeNameResult"></span>
+
+          </div>
+
+
+
+          <div>
+
+            <strong>Jabatan</strong>
+
+            <span id="employeeJabatanResult"></span>
+
+          </div>
+
+
+
+          <div>
+
+            <strong>Departemen</strong>
+
+            <span id="employeeDepartemenResult"></span>
+
+          </div>
+
+
+
+          <div>
+
+            <strong>Status</strong>
+
+            <span id="employeeStatusResult"></span>
+
+          </div>
+
+
+
+        </div>
+
+
+
+
+
+                <div
+          id="leaveBalanceCard"
+          style="
+            display:none;
+            margin-top:16px;
+            padding:14px;
+            background:#f8fafc;
+            border:1px solid #dbe2ea;
+            border-radius:10px;
+          ">
+
+          <div style="font-weight:bold; margin-bottom:10px;">📊 Saldo Cuti</div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+            <div style="flex:1 1 240px; min-width:0; padding:12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:9px;">
+              <div style="font-weight:bold; margin-bottom:8px;">AL - Cuti Tahunan</div>
+              <div style="font-size:13px; color:#64748b;">Total Hak Cuti</div>
+              <div id="leaveQuotaResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Tambahan AL</div>
+              <div id="leaveAdditionalResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Terpakai</div>
+              <div id="leaveUsedResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Sisa</div>
+              <div id="leaveRemainingResult" style="font-size:16px; font-weight:bold;">-</div>
+            </div>
+
+            <div style="flex:1 1 240px; min-width:0; padding:12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:9px;">
+              <div style="font-weight:bold; margin-bottom:8px;">🔁 Sisa Cuti 2026 / Estimasi Carryover</div>
+              <div style="font-size:13px; color:#64748b;">Maksimal Dialihkan</div>
+              <div id="alCarryoverResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Digunakan pada 2027</div>
+              <div id="alCarryoverUsedResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Sisa Cuti Bawaan</div>
+              <div id="alCarryoverRemainingResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Status</div>
+              <div id="alCarryoverStatusResult" style="font-size:14px; font-weight:bold;">-</div>
+            </div>
+
+            <div style="flex:1 1 240px; min-width:0; padding:12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:9px;">
+              <div style="font-weight:bold; margin-bottom:8px;">DP - Pengganti Hari Libur</div>
+              <div style="font-size:13px; color:#64748b;">Quota</div>
+              <div id="dpQuotaResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Tambahan DP</div>
+              <div id="dpAdditionalResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Terpakai</div>
+              <div id="dpUsedResult" style="font-size:16px; font-weight:bold; margin-bottom:7px;">-</div>
+              <div style="font-size:13px; color:#64748b;">Sisa</div>
+              <div id="dpRemainingResult" style="font-size:16px; font-weight:bold;">-</div>
+            </div>
+
+          </div>
+
+          <div id="leaveBalanceNote" style="margin-top:10px; font-size:12px; color:#64748b;"></div>
+
+        </div>
+
+
+<div
+
+          id="employeeMenu"
+
+          class="menu">
+
+
+
+          <button
+
+            class="btn-leave"
+
+            onclick="showLeaveForm()">
+
+
+
+            🏖️ Ajukan Cuti
+
+
+
+          </button>
+
+
+
+          <button
+
+            class="btn-sick"
+
+            onclick="showSickForm()">
+
+
+
+            🤒 Laporan Sakit
+
+
+
+          </button>
+
+          <button class="btn-history" onclick="showHistory()">
+            📋 Riwayat Pengajuan
+          </button>
+          <button class="btn-history" onclick="showFeaturePanel()">
+            ⏱️ Overtime, CT &amp; Shift Swap
+          </button>
+
+
+
+
+        </div>
+
+
+
+      </div>
+
+
+
+    </div>
+
+
+
+
+
+    <!-- ==================================================
+
+         FORM CUTI
+
+         ================================================== -->
+
+
+
+    <div
+
+      id="leaveForm"
+
+      class="card form-section">
+
+
+
+      <h2>
+
+        🏖️ Pengajuan Cuti
+
+      </h2>
+
+
+
+      <div class="employee-info">
+
+
+
+        <div>
+
+          <strong>ID Karyawan</strong>
+
+          <span id="leaveEmployeeId"></span>
+
+        </div>
+
+
+
+        <div>
+
+          <strong>Nama</strong>
+
+          <span id="leaveEmployeeName"></span>
+
+        </div>
+
+
+
+        <div>
+
+          <strong>Jabatan</strong>
+
+          <span id="leaveEmployeeJabatan"></span>
+
+        </div>
+
+
+
+      </div>
+
+
+
+
+
+      <label for="leaveType">
+
+        Kategori Cuti *
+
+      </label>
+
+
+
+      <select id="leaveType">
+
+
+
+        <option value="">
+
+          -- Pilih Kategori Cuti --
+
+        </option>
+
+
+
+        <option value="AL">
+
+          AL - Cuti Tahunan
+
+        </option>
+
+
+
+        <option value="DP">
+
+          DP - Pengganti Hari Libur
+
+        </option>
+
+
+
+        <option value="UL">
+
+          UL - Cuti Tanpa Dibayar
+
+        </option>
+
+
+
+        <option value="ML">
+
+          ML - Cuti Melahirkan
+
+        </option>
+
+
+
+        <option value="MR">
+
+          MR - Cuti Menikah
+
+        </option>
+
+
+
+        <option value="BL">
+
+          BL - Cuti Kedukaan
+
+        </option>
+
+
+
+        <option value="EO">
+
+          EO - Libur Tambahan
+
+        </option>
+
+
+
+        <option value="CT">
+
+          CT - Klaim Lembur
+
+        </option>
+
+
+
+      </select>
+<label for="leaveStart">
+
+        Tanggal Mulai *
+
+      </label>
+
+
+
+      <input
+
+        type="date"
+
+        id="leaveStart">
+
+
+
+
+
+      <label for="leaveEnd">
+
+        Tanggal Selesai *
+
+      </label>
+
+
+
+      <input
+
+        type="date"
+
+        id="leaveEnd">
+
+<label for="leaveReason">
+
+        Alasan / Keterangan *
+
+      </label>
+
+
+
+      <textarea
+
+        id="leaveReason"
+
+        placeholder="Tuliskan alasan pengajuan..."></textarea>
+
+
+
+
+
+      <button
+
+        id="leaveSubmitButton"
+
+        class="btn-submit"
+
+        onclick="submitLeave()">
+
+
+
+        📤 Ajukan Cuti
+
+
+
+      </button>
+
+
+
+
+
+      <button
+
+        class="btn-back"
+
+        onclick="backToEmployee()">
+
+
+
+        ← Kembali
+
+
+
+      </button>
+
+
+
+
+
+      <div
+
+        id="leaveMessage"
+
+        class="message">
+
+      </div>
+
+
+
+    </div>
+
+
+
+
+
+    <!-- ==================================================
+
+         FORM SAKIT
+
+         ================================================== -->
+
+
+
+    <div
+
+      id="sickForm"
+
+      class="card form-section">
+
+
+
+      <h2>
+
+        🤒 Cuti Sakit
+
+      </h2>
+
+
+
+      <div class="employee-info">
+
+
+
+        <div>
+
+          <strong>ID Karyawan</strong>
+
+          <span id="sickEmployeeId"></span>
+
+        </div>
+
+
+
+        <div>
+
+          <strong>Nama</strong>
+
+          <span id="sickEmployeeName"></span>
+
+        </div>
+
+
+
+        <div>
+
+          <strong>Jabatan</strong>
+
+          <span id="sickEmployeeJabatan"></span>
+
+        </div>
+
+
+
+      </div>
+
+
+
+
+
+      <div style="
+
+        margin-top:14px;
+
+        padding:10px;
+
+        background:#ecfdf5;
+
+        border:1px solid #a7f3d0;
+
+        border-radius:8px;
+
+        color:#047857;
+
+        font-size:14px;
+
+      ">
+
+
+
+        Kategori:
+
+        <strong>SL - Cuti Sakit</strong>
+
+
+
+      </div>
+
+
+
+
+
+      <label for="sickStart">
+
+        Tanggal Mulai Sakit *
+
+      </label>
+
+
+
+      <input
+
+        type="date"
+
+        id="sickStart">
+
+
+
+
+
+      <label for="sickEnd">
+
+        Tanggal Selesai *
+
+      </label>
+
+
+
+      <input
+
+        type="date"
+
+        id="sickEnd">
+
+
+
+
+
+      <label for="sickReason">
+
+        Keterangan *
+
+      </label>
+
+
+
+      <textarea
+
+        id="sickReason"
+
+        placeholder="Masukkan keterangan sakit"></textarea>
+
+
+
+
+
+      <label for="medicalFile">
+
+        Surat Dokter / Bukti Sakit *
+
+      </label>
+
+
+
+      <input
+
+        type="file"
+
+        id="medicalFile"
+
+        accept=".jpg,.jpeg,.png,.pdf">
+
+
+
+      <div style="
+
+        margin-top:6px;
+
+        font-size:12px;
+
+        color:#64748b;
+
+      ">
+
+
+
+        Format JPG, JPEG, PNG, atau PDF.
+
+        Maksimal 5 MB.
+
+
+
+      </div>
+
+
+
+
+
+      <button
+
+        id="sickSubmitButton"
+
+        class="btn-submit"
+
+        onclick="submitSick()">
+
+
+
+        📤 Kirim Cuti Sakit
+
+
+
+      </button>
+
+
+
+
+
+      <button
+
+        class="btn-back"
+
+        onclick="backToEmployee()">
+
+
+
+        ← Kembali
+
+
+
+      </button>
+
+
+
+
+
+      <div
+
+        id="sickMessage"
+
+        class="message">
+
+      </div>
+
+
+
+    </div>
+
+
+
+
+
+    <!-- SUCCESS -->
+
+
+
+    <div
+
+      id="successResult"
+
+      class="card"
+
+      style="display:none;">
+
+
+
+      <div class="success-box">
+
+
+
+        <strong>
+
+          Pengajuan berhasil disimpan
+
+        </strong>
+
+
+
+        <div style="margin-top:8px;">
+
+          Request ID:
+
+          <strong id="successRequestId"></strong>
+
+        </div>
+
+
+
+        <div style="margin-top:6px;">
+
+          Status:
+
+          <span class="status status-pending">
+
+            PENDING
+
+          </span>
+
+        </div>
+
+
+
+      </div>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+
+
+      <!-- ==================================================
+         RIWAYAT PENGAJUAN
+         ================================================== -->
+
+    <div id="historySection" class="card" style="display:none;">
+      <div class="manager-header">
+        <h2>📋 Riwayat Pengajuan</h2>
+        <button class="btn-search" onclick="loadEmployeeHistory()">🔄 Muat Ulang</button>
+      </div>
+      <div id="historyContainer">
+        <div class="loading">⏳ Mengambil riwayat pengajuan...</div>
+      </div>
+      <button class="btn-back" onclick="showEmployeePage()">← Kembali ke Karyawan</button>
+    </div>
+
+
+
+<!-- MENU FITUR TAMBAHAN: STAFF MEMILIH FORM YANG DIBUTUHKAN -->
+    <div id="featurePanel" class="card" style="display:none;">
+      <h2>⏱️ Overtime, CT &amp; Shift Swap</h2>
+      <div class="employee-info" style="margin-bottom:14px;">
+        <div><strong>ID Karyawan</strong><span id="featureEmployeeId">-</span></div>
+        <div><strong>Nama</strong><span id="featureEmployeeName">-</span></div>
+      </div>
+      <p>Pilih salah satu layanan untuk membuka formulir yang sesuai.</p>
+      <div class="menu" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;">
+        <button class="btn-approve" onclick="showOvertimePanel()">⏱️ Catat Overtime</button>
+        <button class="btn-submit" onclick="showCTPanel()">🕒 Claim CT</button>
+        <button class="btn-history" onclick="showShiftSwapPanel()">🔁 Shift Swap</button>
+        <button class="btn-history" onclick="showFeatureHistoryPanel()">📋 Riwayat Fitur</button>
+      </div>
+      <button class="btn-back" onclick="showEmployeePage()">← Kembali ke Karyawan</button>
+    </div>
+
+    <div id="overtimePanel" class="card" style="display:none;">
+      <h2>⏱️ Pencatatan Overtime</h2>
+      <p id="overtimeStaffLabel" style="color:#64748b;"></p>
+      <label for="overtimeNote">Keterangan lembur (opsional)</label>
+      <textarea id="overtimeNote" placeholder="Tuliskan keterangan lembur..."></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn-approve" onclick="overtimeAction('START')">▶ Mulai Lembur</button>
+        <button class="btn-reject" onclick="overtimeAction('END')">■ Selesai Lembur</button>
+      </div>
+      <div id="overtimeMessage" class="message"></div>
+      <button class="btn-back" onclick="showFeaturePanel()">← Kembali ke Menu Overtime, CT &amp; Shift Swap</button>
+    </div>
+
+    <div id="ctPanel" class="card" style="display:none;">
+      <h2>🕒 Pengajuan CT (Compensatory Time)</h2>
+      <p id="ctStaffLabel" style="color:#64748b;"></p>
+      <label for="ctDate">Tanggal penggunaan CT *</label>
+      <input type="date" id="ctDate">
+      <label for="ctHours">Jumlah jam CT *</label>
+      <input type="number" id="ctHours" min="0.25" max="24" step="0.25" placeholder="Contoh: 4 atau 8">
+      <label for="ctTiming">Penggunaan CT *</label>
+      <select id="ctTiming">
+        <option value="LATE_START">Terlambat masuk / mulai kerja lebih siang</option>
+        <option value="EARLY_LEAVE">Pulang lebih awal</option>
+        <option value="FULL_DAY">Satu hari penuh (8 jam)</option>
+      </select>
+      <label for="ctReason">Keterangan CT *</label>
+      <textarea id="ctReason" placeholder="Catat lembur yang diklaim dan jadwal kerja, mis. 08:00–16:00; CT 4 jam, masuk 12:00."></textarea>
+      <button class="btn-submit" onclick="submitCTForm()">📤 Ajukan CT</button>
+      <div id="ctMessage" class="message"></div>
+      <button class="btn-back" onclick="showFeaturePanel()">← Kembali ke Menu Overtime, CT &amp; Shift Swap</button>
+    </div>
+
+    <div id="shiftSwapPanel" class="card" style="display:none;">
+      <h2>🔁 Pengajuan Shift Swap</h2>
+      <p id="swapStaffLabel" style="color:#64748b;"></p>
+      <label for="swapPartnerId">Pilih pasangan shift (ID Staff - Nama Staff) *</label>
+      <div class="employee-picker">
+        <input id="swapPartnerId" type="text" autocomplete="off" placeholder="Cari nama atau ID staff dengan posisi yang sama">
+        <div id="swapPartnerSuggestions" class="employee-suggestions" role="listbox" style="display:none;"></div>
+      </div>
+      <small id="swapPartnerHint" style="display:block;color:#64748b;margin-top:5px;">Daftar pasangan akan dibatasi ke posisi yang sama dengan kamu.</small>
+      <label for="swapDate1">Tanggal shift kamu *</label>
+      <input type="date" id="swapDate1">
+      <label for="swapDate2">Tanggal shift pasangan *</label>
+      <input type="date" id="swapDate2">
+      <small style="display:block;color:#64748b;margin-top:5px;">Tukar shift bisa dilakukan pada hari yang sama maupun tanggal berbeda. Untuk tukar shift di hari yang sama, pilih tanggal yang sama pada kedua kolom.</small>
+      <label for="swapNote">Keterangan shift swap *</label>
+      <textarea id="swapNote" placeholder="Tuliskan detail shift yang ditukar..."></textarea>
+      <button class="btn-submit" onclick="submitSwapForm()">🔁 Ajukan Shift Swap</button>
+      <div id="swapMessage" class="message"></div>
+      <hr style="margin:18px 0;border:0;border-top:1px solid #e5e7eb;">
+      <h3>📩 Pengajuan yang Menunggu Konfirmasi Kamu</h3>
+      <p style="color:#64748b;font-size:13px;">Jika kamu dipilih sebagai pasangan shift, pengajuan akan muncul di sini. Periksa tanggal dan keterangannya, lalu konfirmasi langsung tanpa mengetik ID.</p>
+      <div id="swapPendingConfirmContainer"><div class="empty">Memuat pengajuan yang menunggu konfirmasi...</div></div>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;color:#475569;">Opsi alternatif: konfirmasi dengan ID manual (tidak wajib)</summary>
+        <label for="swapConfirmId">ID pengajuan</label>
+      <input id="swapConfirmId" placeholder="Contoh: SW-1234ABCD">
+      <button class="btn-search" style="width:100%;margin-top:10px;" onclick="confirmSwapForm()">✅ Konfirmasi Shift Swap</button>
+      <div id="swapConfirmMessage" class="message"></div>
+      </details>
+      <button class="btn-back" onclick="showFeaturePanel()">← Kembali ke Menu Overtime, CT &amp; Shift Swap</button>
+    </div>
+
+    <div id="featureHistoryPanel" class="card" style="display:none;">
+      <div class="manager-header">
+        <h2>📋 Riwayat Fitur Tambahan</h2>
+        <button class="btn-search" onclick="loadFeatureHistory()">🔄 Muat Ulang</button>
+      </div>
+      <div id="featureHistoryContainer"><div class="empty">Klik Muat Ulang untuk melihat riwayat.</div></div>
+      <button class="btn-back" onclick="showFeaturePanel()">← Kembali ke Menu Overtime, CT &amp; Shift Swap</button>
+    </div>
+
+    </div><!-- end employeePage: manager page is a separate section -->
+
+    <!-- ==================================================
+
+       MANAGER PAGE
+
+       ================================================== -->
+
+
+
+  <div
+
+    id="managerSection"
+
+    class="card">
+
+
+
+    <div class="manager-header">
+
+
+
+      <h2>
+
+        👨‍💼 Persetujuan Manager
+
+      </h2>
+
+
+
+      <button
+
+        class="btn-search"
+
+        onclick="loadPendingRequests()">
+
+
+
+        🔄 Muat Ulang
+
+
+
+      </button>
+
+
+
+    </div>
+
+    <button class="btn-search" style="margin:10px 0;" onclick="showManagerMonthlyBalancePanel_()">📅 Riwayat Saldo Bulanan</button>
+
+    <div id="managerMonthlyBalancePanel" class="card" style="display:none;margin:12px 0;">
+      <div class="manager-header">
+        <h2>📅 Riwayat Saldo Bulanan</h2>
+        <button class="btn-search" onclick="loadManagerMonthlyBalanceHistory_()">🔄 Muat Ulang</button>
+      </div>
+      <p style="font-size:13px;color:#64748b;">Khusus Manager/HR: pilih karyawan untuk melihat riwayat saldo AL dan DP per bulan.</p>
+      <label for="managerMonthlyEmployee">Karyawan</label>
+      <select id="managerMonthlyEmployee" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px;">
+        <option value="">-- Pilih Karyawan --</option>
+      </select>
+      <div id="managerMonthlyBalanceContainer"><div class="empty">Pilih karyawan lalu tekan Muat Ulang.</div></div>
+      <button class="btn-back" onclick="hideManagerMonthlyBalancePanel_()">← Kembali ke Persetujuan Manager</button>
+    </div>
+
+
+
+
+
+
+    <div
+
+      style="
+
+        background:#f5f3ff;
+
+        border:1px solid #ddd6fe;
+
+        padding:12px;
+
+        border-radius:9px;
+
+        margin-bottom:15px;
+
+      ">
+
+
+
+      <label
+
+        for="approverName"
+
+        style="margin-top:0;">
+
+
+
+        Nama Manajer / Penyetuju
+
+
+
+      </label>
+
+
+
+      <select
+        id="approverName">
+        <option value="">-- Pilih Penyetuju --</option>
+        <option value="Dimas Destrian Caesar">Dimas Destrian Caesar</option>
+        <option value="Windhu Wicaksana">Windhu Wicaksana</option>
+        <option value="Angie Friska Nanda">Angie Friska Nanda</option>
+        <option value="Agus Veriyanto">Agus Veriyanto</option>
+      </select>
+
+
+
+    </div>
+
+
+
+
+
+    <div
+
+      id="managerMessage"
+
+      class="message">
+
+    </div>
+
+
+
+
+
+    
+    <div
+      id="pendingNotification"
+      class="pending-notification empty"
+      aria-live="polite">
+      <div>
+        <strong>🔔 Pengajuan Menunggu Persetujuan</strong>
+        <div id="pendingNotificationText" style="margin-top:3px;">Belum mengambil data.</div>
+      </div>
+      <span id="pendingNotificationCount" class="count">0</span>
+    </div>
+
+    <div
+
+      id="pendingContainer">
+
+
+
+      <div class="loading">
+
+        Klik Refresh untuk mengambil pengajuan PENDING.
+
+      </div>
+
+
+
+    </div>
+
+
+
+
+
+    
+
+
+    <div id="extraApprovalSection" style="margin:18px 0;padding:14px;border:1px solid #dbe2ea;border-radius:10px;">
+      <div class="manager-header">
+        <h2>🕒 Persetujuan CT &amp; Shift Swap</h2>
+        <button class="btn-search" onclick="loadPendingExtraRequests()">🔄 Muat Ulang</button>
+      </div>
+      <div id="extraPendingContainer"><div class="empty">Klik Muat Ulang untuk mengambil overtime dan CT yang menunggu persetujuan.</div></div>
+    </div>
+
+    <!-- ==================================================
+         REKAP & AUDIT
+         ================================================== -->
+
+    <div id="auditSection" class="audit-toolbar">
+      <div class="manager-header" style="margin-bottom:0;">
+        <h2>📊 Rekap &amp; Audit</h2>
+        <button class="btn-search" onclick="toggleAuditPanel()">Buka / Tutup</button>
+      </div>
+
+      <div id="auditPanel" style="display:none;">
+        <div class="audit-grid">
+          <div>
+            <label for="auditFrom" style="margin-top:12px;">Dari Tanggal</label>
+            <input type="date" id="auditFrom">
+          </div>
+          <div>
+            <label for="auditTo" style="margin-top:12px;">Sampai Tanggal</label>
+            <input type="date" id="auditTo">
+          </div>
+          <div>
+            <label for="auditEmployee" style="margin-top:12px;">Karyawan</label>
+            <input type="text" id="auditEmployee" placeholder="ID / Nama karyawan">
+          </div>
+          <div>
+            <label for="auditCategory" style="margin-top:12px;">Kategori</label>
+            <select id="auditCategory">
+              <option value="ALL">Semua Kategori</option>
+              <option value="AL">AL - Cuti Tahunan</option>
+              <option value="DP">DP - Pengganti Hari Libur</option>
+              <option value="UL">UL - Cuti Tanpa Dibayar</option>
+              <option value="SL">SL - Cuti Sakit</option>
+              <option value="ML">ML - Cuti Melahirkan</option>
+              <option value="MR">MR - Cuti Menikah</option>
+              <option value="BL">BL - Cuti Kedukaan</option>
+              <option value="EO">EO - Libur Tambahan</option>
+              <option value="CT">CT - Klaim Lembur</option>
+            </select>
+          </div>
+          <div>
+            <label for="auditStatus" style="margin-top:12px;">Status</label>
+            <select id="auditStatus">
+              <option value="ALL">Semua Status</option>
+              <option value="PENDING">Menunggu Persetujuan</option>
+              <option value="APPROVED">Disetujui</option>
+              <option value="REJECTED">Ditolak</option>
+            </select>
+          </div>
+        </div>
+        <div class="audit-actions">
+          <button class="btn-search" onclick="loadAuditSummary()">🔎 Tampilkan Rekap</button>
+          <button class="btn-back" style="width:auto;margin-top:0;" onclick="resetAuditFilters()">↺ Reset</button>
+        </div>
+        <div id="auditMessage" class="message"></div>
+        <div id="auditSummaryContainer"><div class="empty">Gunakan filter lalu klik Tampilkan Rekap.</div></div>
+      </div>
+    </div>
+
+<button
+
+      class="btn-back"
+
+      onclick="showEmployeePage()">
+
+
+
+      ← Kembali ke Karyawan
+
+
+
+    </button>
+
+
+
+  </div>
+
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+
+// ======================================================
+
+// GLOBAL
+
+// ======================================================
+
+
+
+let currentEmployee = null;
+let managerToken = '';
+let managerRefreshTimer = null;
+let activeEmployeeOptions = [];
+let selectedEmployeeId = '';
+
+function loadEmployeeOptions() {
+  const input = document.getElementById('employeeId');
+  const box = document.getElementById('employeeSuggestions');
+  if (!input || !box) return;
+  google.script.run
+    .withSuccessHandler(function(list) {
+      activeEmployeeOptions = Array.isArray(list) ? list : [];
+      setupSwapPartnerPicker_();
+    })
+    .withFailureHandler(function(error) {
+      console.error('Gagal memuat daftar karyawan:', error);
+    })
+    .getActiveEmployees();
+
+  input.addEventListener('input', function() {
+    selectedEmployeeId = '';
+    currentEmployee = null;
+    const query = input.value.trim().toLocaleLowerCase('id');
+    if (!query) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    const matches = activeEmployeeOptions.filter(function(emp) {
+      return String(emp.id || '').toLocaleLowerCase('id').includes(query) ||
+        String(emp.name || '').toLocaleLowerCase('id').includes(query);
+    }).slice(0, 30);
+    if (!matches.length) {
+      box.innerHTML = '<div style="padding:13px;color:#64748b;">Karyawan tidak ditemukan.</div>';
+      box.style.display = 'block';
+      return;
+    }
+    box.innerHTML = matches.map(function(emp) {
+      const label = escapeHtml(String(emp.id || '') + ' - ' + String(emp.name || ''));
+      return '<button type="button" class="employee-suggestion" role="option" data-id="' + escapeAttribute(emp.id || '') + '">' + label + '</button>';
+    }).join('');
+    box.style.display = 'block';
+  });
+
+  box.addEventListener('click', function(event) {
+    const option = event.target.closest('.employee-suggestion');
+    if (!option) return;
+    selectedEmployeeId = option.getAttribute('data-id') || '';
+    const emp = activeEmployeeOptions.find(function(item) { return String(item.id) === selectedEmployeeId; });
+    input.value = emp ? String(emp.id || '') + ' - ' + String(emp.name || '') : '';
+    box.style.display = 'none';
+    box.innerHTML = '';
+  });
+
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('.employee-picker')) box.style.display = 'none';
+  });
+}
+
+function setupSwapPartnerPicker_() {
+  const input = document.getElementById('swapPartnerId');
+  const box = document.getElementById('swapPartnerSuggestions');
+  const hint = document.getElementById('swapPartnerHint');
+  if (!input || !box || input.dataset.pickerReady === '1') return;
+  input.dataset.pickerReady = '1';
+  let selectedPartnerId = '';
+
+  function samePositionEmployees_(query) {
+    if (!currentEmployee || !currentEmployee.position) return [];
+    const position = String(currentEmployee.position).trim().toLocaleLowerCase('id');
+    const ownId = String(currentEmployee.id || '').trim();
+    return activeEmployeeOptions.filter(function(emp) {
+      return String(emp.id || '').trim() !== ownId &&
+        String(emp.position || '').trim().toLocaleLowerCase('id') === position &&
+        (!query || String(emp.id || '').toLocaleLowerCase('id').includes(query) ||
+          String(emp.name || '').toLocaleLowerCase('id').includes(query));
+    }).slice(0, 30);
+  }
+
+  input.addEventListener('input', function() {
+    selectedPartnerId = '';
+    const query = input.value.trim().toLocaleLowerCase('id');
+    if (!currentEmployee) {
+      box.innerHTML = '<div style="padding:13px;color:#64748b;">Pilih data karyawan kamu terlebih dahulu.</div>';
+      box.style.display = 'block';
+      return;
+    }
+    const matches = samePositionEmployees_(query);
+    if (!matches.length) {
+      box.innerHTML = '<div style="padding:13px;color:#64748b;">Tidak ada staff aktif dengan posisi yang sama.</div>';
+      box.style.display = 'block';
+      return;
+    }
+    box.innerHTML = matches.map(function(emp) {
+      const label = escapeHtml(String(emp.id || '') + ' - ' + String(emp.name || '') + ' · ' + String(emp.position || ''));
+      return '<button type="button" class="employee-suggestion" role="option" data-id="' + escapeAttribute(emp.id || '') + '">' + label + '</button>';
+    }).join('');
+    box.style.display = 'block';
+  });
+
+  box.addEventListener('click', function(event) {
+    const option = event.target.closest('.employee-suggestion');
+    if (!option) return;
+    selectedPartnerId = option.getAttribute('data-id') || '';
+    const emp = activeEmployeeOptions.find(function(item) { return String(item.id) === selectedPartnerId; });
+    input.value = emp ? String(emp.id || '') + ' - ' + String(emp.name || '') : '';
+    box.style.display = 'none';
+    box.innerHTML = '';
+  });
+
+  input.addEventListener('change', function() {
+    if (!selectedPartnerId) {
+      const value = input.value.trim();
+      const match = activeEmployeeOptions.find(function(emp) {
+        return value === String(emp.id || '') + ' - ' + String(emp.name || '') &&
+          currentEmployee && String(emp.position || '').trim().toLocaleLowerCase('id') === String(currentEmployee.position || '').trim().toLocaleLowerCase('id') &&
+          String(emp.id || '') !== String(currentEmployee.id || '');
+      });
+      selectedPartnerId = match ? String(match.id) : '';
+    }
+  });
+
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('#swapPartnerSuggestions') && event.target !== input) box.style.display = 'none';
+  });
+
+  // Pass the selected ID to submission without changing the familiar form structure.
+  window.getSelectedSwapPartnerId_ = function() { return selectedPartnerId; };
+  window.resetSelectedSwapPartner_ = function() { selectedPartnerId = ''; box.style.display = 'none'; box.innerHTML = ''; };
+  if (hint) hint.textContent = 'Hanya staff aktif dengan posisi yang sama (' + (currentEmployee && currentEmployee.position ? currentEmployee.position : 'posisi kamu') + ') yang akan ditampilkan.';
+}
+
+document.addEventListener('DOMContentLoaded', loadEmployeeOptions);
+
+
+
+
+
+// ======================================================
+
+// PAGE SWITCH
+
+// ======================================================
+
+
+
+function showEmployeePage() {
+  stopManagerAutoRefresh();
+  document.getElementById('employeePage').style.display = 'block';
+  document.getElementById('managerSection').style.display = 'none';
+
+  // Reset ke tampilan awal agar nama karyawan bisa dipilih kembali,
+  // termasuk setelah pengguna tidak sengaja membuka menu Manager.
+  hideEmployeeSubpanels_();
+  const employeeSection = document.getElementById('employeeSection');
+  if (employeeSection) employeeSection.style.display = 'block';
+  const result = document.getElementById('employeeResult');
+  const menu = document.getElementById('employeeMenu');
+  if (result) result.style.display = 'none';
+  if (menu) menu.style.display = 'none';
+  currentEmployee = null;
+  selectedEmployeeId = '';
+  const input = document.getElementById('employeeId');
+  if (input) input.value = '';
+  const suggestions = document.getElementById('employeeSuggestions');
+  if (suggestions) { suggestions.innerHTML = ''; suggestions.style.display = 'none'; }
+  const message = document.getElementById('searchMessage');
+  if (message) { message.className = 'message'; message.innerText = ''; }
+}
+
+
+
+
+
+function showManagerPage() {
+
+
+
+  if (managerToken) {
+
+    document
+      .getElementById('employeePage')
+      .style.display = 'none';
+
+    document
+      .getElementById('managerSection')
+      .style.display = 'block';
+
+    loadPendingRequests();
+    startManagerAutoRefresh();
+    return;
+  }
+
+
+
+  const pin = prompt('Masukkan PIN Manajer:');
+
+  if (pin === null) {
+    return;
+  }
+
+
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+
+      if (!result || !result.success || !result.token) {
+        alert('Akses Manajer gagal.');
+        return;
+      }
+
+      managerToken = result.token;
+
+      document
+        .getElementById('employeePage')
+        .style.display = 'none';
+
+      document
+        .getElementById('managerSection')
+        .style.display = 'block';
+
+      loadPendingRequests();
+      startManagerAutoRefresh();
+    })
+    .withFailureHandler(function(error) {
+
+      alert(
+        error && error.message
+          ? error.message
+          : 'PIN Manajer salah atau akses gagal.'
+      );
+    })
+    .authorizeManager(String(pin).trim());
+
+}
+
+
+
+
+
+// ======================================================
+
+// SEARCH EMPLOYEE
+
+// ======================================================
+
+
+
+function searchEmployee() {
+
+
+
+  const typedEmployee = document.getElementById('employeeId').value.trim();
+  const exactMatch = activeEmployeeOptions.find(function(emp) {
+    return String(emp.id || '') + ' - ' + String(emp.name || '') === typedEmployee;
+  });
+  const employeeId = selectedEmployeeId || (exactMatch ? String(exactMatch.id) : typedEmployee);
+
+
+
+  const message =
+
+    document.getElementById('searchMessage');
+
+
+
+  const result =
+
+    document.getElementById('employeeResult');
+
+
+
+  const menu =
+
+    document.getElementById('employeeMenu');
+
+
+
+  const button =
+
+    document.getElementById('searchButton');
+
+
+
+
+
+  message.className = 'message';
+
+  message.innerText = '';
+
+
+
+  result.style.display = 'none';
+
+  menu.style.display = 'none';
+
+
+
+
+
+  if (!employeeId) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'ID Karyawan wajib diisi.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  button.disabled = true;
+
+  button.innerText = 'Memuat...';
+
+
+
+
+
+  google.script.run
+
+
+
+    .withSuccessHandler(
+
+      function(employee) {
+
+
+
+        button.disabled = false;
+
+        button.innerText = 'Cari';
+
+
+
+
+
+        if (!employee) {
+
+
+
+          currentEmployee = null;
+
+
+
+          message.className =
+
+            'message error';
+
+
+
+          message.innerText =
+
+            'ID Karyawan tidak ditemukan.';
+
+
+
+          return;
+
+
+
+        }
+
+
+
+
+
+        if (
+
+          String(employee.status || '')
+
+            .trim()
+
+            .toLowerCase() !== 'active'
+
+        ) {
+
+
+
+          currentEmployee = null;
+
+
+
+          message.className =
+
+            'message error';
+
+
+
+          message.innerText =
+
+            'Karyawan ditemukan tetapi statusnya tidak aktif.';
+
+
+
+          return;
+
+
+
+        }
+
+
+
+
+
+        currentEmployee = employee;
+
+
+
+
+
+        document
+
+          .getElementById('employeeIdResult')
+
+          .innerText =
+
+          employee.id || '';
+
+
+
+
+
+        document
+
+          .getElementById('employeeNameResult')
+
+          .innerText =
+
+          employee.name || '';
+
+
+
+
+
+        document
+
+          .getElementById('employeeJabatanResult')
+
+          .innerText =
+
+          employee.position || '';
+
+
+
+
+
+        document
+
+          .getElementById('employeeDepartemenResult')
+
+          .innerText =
+
+          employee.department || '';
+
+
+
+
+
+        document
+
+          .getElementById('employeeStatusResult')
+
+          .innerText =
+
+          employee.status || '';
+
+
+
+
+
+        document
+
+          .getElementById('employeeResult')
+
+          .style.display =
+
+          'block';
+
+
+
+
+
+        document
+
+          .getElementById('employeeMenu')
+
+          .style.display =
+
+          'block';
+
+
+
+
+
+        loadLeaveBalance();
+
+        message.className =
+
+          'message success';
+
+
+
+        message.innerText =
+
+          'Data karyawan ditemukan.';
+
+
+
+      }
+
+    )
+
+
+
+    .withFailureHandler(
+
+      function(error) {
+
+
+
+        button.disabled = false;
+
+        button.innerText = 'Cari';
+
+
+
+        message.className =
+
+          'message error';
+
+
+
+        message.innerText =
+
+          'Terjadi error: ' +
+
+          (
+
+            error &&
+
+            error.message
+
+              ? error.message
+
+              : 'Unknown error'
+
+          );
+
+
+
+      }
+
+    )
+
+
+
+    .getEmployee(employeeId);
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// SHOW LEAVE FORM
+
+// ======================================================
+
+
+
+function showLeaveForm() {
+
+
+
+  if (!currentEmployee) {
+
+
+
+    alert(
+
+      'Silakan cari ID Karyawan terlebih dahulu.'
+
+    );
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  document
+
+    .getElementById('leaveEmployeeId')
+
+    .innerText =
+
+    currentEmployee.id;
+
+
+
+
+
+  document
+
+    .getElementById('leaveEmployeeName')
+
+    .innerText =
+
+    currentEmployee.name;
+
+
+
+
+
+  document
+
+    .getElementById('leaveEmployeeJabatan')
+
+    .innerText =
+
+    currentEmployee.position;
+
+
+
+
+
+  document
+
+    .getElementById('employeeSection')
+
+    .style.display =
+
+    'none';
+
+
+
+
+
+  document
+
+    .getElementById('leaveForm')
+
+    .style.display =
+
+    'block';
+
+
+
+
+
+  document
+
+    .getElementById('sickForm')
+
+    .style.display =
+
+    'none';
+
+
+
+
+  const historySection = document.getElementById('historySection');
+  if (historySection) historySection.style.display = 'none';
+}
+
+
+
+
+
+// ======================================================
+
+// SHOW SICK FORM
+
+// ======================================================
+
+
+
+function showSickForm() {
+
+
+
+  if (!currentEmployee) {
+
+
+
+    alert(
+
+      'Silakan cari ID Karyawan terlebih dahulu.'
+
+    );
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  document
+
+    .getElementById('sickEmployeeId')
+
+    .innerText =
+
+    currentEmployee.id;
+
+
+
+
+
+  document
+
+    .getElementById('sickEmployeeName')
+
+    .innerText =
+
+    currentEmployee.name;
+
+
+
+
+
+  document
+
+    .getElementById('sickEmployeeJabatan')
+
+    .innerText =
+
+    currentEmployee.position;
+
+
+
+
+
+  document
+
+    .getElementById('employeeSection')
+
+    .style.display =
+
+    'none';
+
+
+
+
+
+  document
+
+    .getElementById('sickForm')
+
+    .style.display =
+
+    'block';
+
+
+
+
+
+  document
+
+    .getElementById('leaveForm')
+
+    .style.display =
+
+    'none';
+
+
+
+
+  const historySection = document.getElementById('historySection');
+  if (historySection) historySection.style.display = 'none';
+}
+
+
+
+
+
+// ======================================================
+
+// BACK
+
+// ======================================================
+
+
+
+function backToEmployee() {
+  const historySection = document.getElementById('historySection');
+  if (historySection) historySection.style.display = 'none';
+
+
+
+
+  document
+
+    .getElementById('leaveForm')
+
+    .style.display =
+
+    'none';
+
+
+
+
+
+  document
+
+    .getElementById('sickForm')
+
+    .style.display =
+
+    'none';
+
+
+
+
+
+  document
+
+    .getElementById('employeeSection')
+
+    .style.display =
+
+    'block';
+
+
+
+
+
+  document
+
+    .getElementById('leaveMessage')
+
+    .className =
+
+    'message';
+
+
+
+
+
+  document
+
+    .getElementById('leaveMessage')
+
+    .innerText =
+
+    '';
+
+
+
+
+
+  document
+
+    .getElementById('sickMessage')
+
+    .className =
+
+    'message';
+
+
+
+
+
+  document
+
+    .getElementById('sickMessage')
+
+    .innerText =
+
+    '';
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// SUBMIT CUTI / LEAVE
+
+// ======================================================
+
+
+
+function submitLeave() {
+
+
+
+  if (!currentEmployee) {
+
+
+
+    alert(
+
+      'Data karyawan tidak ditemukan.'
+
+    );
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const leaveType =
+
+    document
+
+      .getElementById('leaveType')
+
+      .value;
+
+
+
+  const start =
+
+    document
+
+      .getElementById('leaveStart')
+
+      .value;
+
+
+
+  const end =
+
+    document
+
+      .getElementById('leaveEnd')
+
+      .value;
+
+
+
+  const reason =
+
+    document
+
+      .getElementById('leaveReason')
+
+      .value
+
+      .trim();
+
+
+
+  const message =
+
+    document
+
+      .getElementById('leaveMessage');
+
+
+
+  const button =
+
+    document
+
+      .getElementById('leaveSubmitButton');
+
+
+
+
+
+  message.className = 'message';
+
+  message.innerText = '';
+
+
+
+
+
+  if (!leaveType) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan pilih kategori cuti.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (!start) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan pilih tanggal mulai.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (!end) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan pilih tanggal selesai.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (end < start) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Tanggal selesai tidak boleh sebelum tanggal mulai.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+
+  const leaveDays =
+
+    Math.floor(
+
+      (
+
+        new Date(end + 'T00:00:00').getTime() -
+
+        new Date(start + 'T00:00:00').getTime()
+
+      ) /
+
+      (1000 * 60 * 60 * 24)
+
+    ) + 1;
+
+
+
+  if (leaveDays > 3) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Pengajuan cuti maksimal 3 hari berturut-turut. Untuk cuti lebih dari 3 hari, harap menghubungi Supervisor/Manajer dan konfirmasi ke pihak HR.';
+
+
+
+    return;
+
+  }
+
+  if (!reason) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan isi alasan / keterangan.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const confirmation =
+
+    confirm(
+
+      'Apakah data pengajuan sudah benar?'
+
+    );
+
+
+
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
+
+
+
+  button.disabled = true;
+
+  button.innerText =
+
+    'Menyimpan...';
+
+
+
+
+
+  message.className =
+
+    'message success';
+
+
+
+  message.innerText =
+
+    'Sedang menyimpan pengajuan...';
+
+
+
+
+
+  const requestData = {
+
+
+
+    employeeId:
+
+      currentEmployee.id,
+
+
+
+    requestType:
+
+      'LEAVE',
+
+
+
+    leaveType:
+
+      leaveType,
+
+
+
+    startDate:
+
+      start,
+
+
+
+    endDate:
+
+      end,
+
+
+
+    reason:
+
+      reason
+
+
+
+  };
+
+
+
+
+
+  google.script.run
+
+
+
+    .withSuccessHandler(
+
+      function(result) {
+
+
+
+        button.disabled = false;
+
+
+
+        button.innerText =
+
+          '📤 Ajukan Cuti';
+
+
+
+
+
+        if (
+
+          !result ||
+
+          !result.success
+
+        ) {
+
+
+
+          message.className =
+
+            'message error';
+
+
+
+          message.innerText =
+
+            'Pengajuan gagal disimpan.';
+
+
+
+          return;
+
+
+
+        }
+
+
+
+
+
+        message.className =
+
+          'message success';
+
+
+
+        message.innerText =
+
+          'Pengajuan berhasil disimpan.' +
+          (result.emailSent
+            ? '\nEmail bukti pengajuan sudah dikirim ke staff dan Admin Transport.'
+            : '\nPERINGATAN: email bukti belum terkirim. ' + (result.emailError || 'Periksa konfigurasi email Apps Script.') + ' Hubungi admin.');
+
+
+
+
+
+        showSuccess(
+
+          result.requestId
+
+        );
+
+
+
+
+
+        document
+
+          .getElementById('leaveType')
+
+          .value = '';
+
+
+
+
+
+        document
+
+          .getElementById('leaveStart')
+
+          .value = '';
+
+
+
+
+
+        document
+
+          .getElementById('leaveEnd')
+
+          .value = '';
+
+
+
+
+
+        document
+
+          .getElementById('leaveReason')
+
+          .value = '';
+
+
+
+      }
+
+    )
+
+
+
+    .withFailureHandler(
+
+      function(error) {
+
+
+
+        button.disabled = false;
+
+
+
+        button.innerText =
+
+          '📤 Ajukan Cuti';
+
+
+
+
+
+        message.className =
+
+          'message error';
+
+
+
+        message.innerText =
+
+          'Gagal menyimpan: ' +
+
+          (
+
+            error &&
+
+            error.message
+
+              ? error.message
+
+              : 'Unknown error'
+
+          );
+
+
+
+      }
+
+    )
+
+
+
+    .submitRequest(requestData);
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// SUBMIT SICK
+
+// ======================================================
+
+
+
+function submitSick() {
+
+
+
+  if (!currentEmployee) {
+
+
+
+    alert(
+
+      'Data karyawan tidak ditemukan.'
+
+    );
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const start =
+
+    document
+
+      .getElementById('sickStart')
+
+      .value;
+
+
+
+  const end =
+
+    document
+
+      .getElementById('sickEnd')
+
+      .value;
+
+
+
+  const reason =
+
+    document
+
+      .getElementById('sickReason')
+
+      .value
+
+      .trim();
+
+
+
+  const file =
+
+    document
+
+      .getElementById('medicalFile')
+
+      .files[0];
+
+
+
+  const message =
+
+    document
+
+      .getElementById('sickMessage');
+
+
+
+  const button =
+
+    document
+
+      .getElementById('sickSubmitButton');
+
+
+
+
+
+  message.className =
+
+    'message';
+
+
+
+  message.innerText =
+
+    '';
+
+
+
+
+
+  if (!start) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan pilih tanggal mulai sakit.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (!end) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan pilih tanggal selesai.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (end < start) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Tanggal selesai tidak boleh sebelum tanggal mulai.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (!reason) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan isi keterangan sakit.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (!file) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Silakan upload surat dokter atau bukti sakit.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  if (
+
+    file.size>
+
+    5 * 1024 * 1024
+
+  ) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'Ukuran file maksimal 5 MB.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const allowedTypes = [
+
+    'image/jpeg',
+
+    'image/png',
+
+    'application/pdf'
+
+  ];
+
+
+
+
+
+  if (
+
+    allowedTypes.indexOf(
+
+      file.type
+
+    ) === -1
+
+  ) {
+
+
+
+    message.className =
+
+      'message error';
+
+
+
+    message.innerText =
+
+      'File harus berupa JPG, PNG, atau PDF.';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const confirmation =
+
+    confirm(
+
+      'Apakah data Cuti Sakit sudah benar?'
+
+    );
+
+
+
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
+
+
+
+  button.disabled = true;
+
+
+
+  button.innerText =
+
+    'Mengupload...';
+
+
+
+
+
+  message.className =
+
+    'message success';
+
+
+
+  message.innerText =
+
+    'Sedang mengupload surat dokter...';
+
+
+
+
+
+  const reader =
+
+    new FileReader();
+
+
+
+
+
+  reader.onload =
+
+    function(event) {
+
+
+
+      const dataUrl =
+
+        event.target.result;
+
+
+
+      const parts =
+
+        dataUrl.split(',');
+
+
+
+      const base64 =
+
+        parts.length> 1
+
+          ? parts[1]
+
+          : '';
+
+
+
+
+
+      if (!base64) {
+
+
+
+        button.disabled = false;
+
+
+
+        button.innerText =
+
+          '📤 Kirim Cuti Sakit';
+
+
+
+        message.className =
+
+          'message error';
+
+
+
+        message.innerText =
+
+          'File surat dokter tidak terbaca.';
+
+
+
+        return;
+
+
+
+      }
+
+
+
+
+
+      const requestData = {
+
+
+
+        employeeId:
+
+          currentEmployee.id,
+
+
+
+        requestType:
+
+          'SICK',
+
+
+
+        leaveType:
+
+          'SL',
+
+
+
+        startDate:
+
+          start,
+
+
+
+        endDate:
+
+          end,
+
+
+
+        reason:
+
+          reason,
+
+
+
+        file: {
+
+
+
+          name:
+
+            file.name,
+
+
+
+          mimeType:
+
+            file.type,
+
+
+
+          size:
+
+            file.size,
+
+
+
+          base64:
+
+            base64
+
+
+
+        }
+
+
+
+      };
+
+
+
+
+
+      google.script.run
+
+
+
+        .withSuccessHandler(
+
+          function(result) {
+
+
+
+            button.disabled = false;
+
+
+
+            button.innerText =
+
+              '📤 Kirim Cuti Sakit';
+
+
+
+
+
+            if (
+
+              !result ||
+
+              !result.success
+
+            ) {
+
+
+
+              message.className =
+
+                'message error';
+
+
+
+              message.innerText =
+
+                'Pengajuan gagal disimpan.';
+
+
+
+              return;
+
+
+
+            }
+
+
+
+
+
+            message.className =
+
+              'message success';
+
+
+
+            message.innerText =
+
+              'Cuti Sakit berhasil disimpan.' +
+              (result.emailSent
+                ? '\nEmail bukti laporan sakit sudah dikirim ke staff dan Admin Transport.'
+                : '\nPERINGATAN: email bukti belum terkirim. ' + (result.emailError || 'Periksa konfigurasi email Apps Script.') + ' Hubungi admin.');
+
+
+
+
+
+            showSuccess(
+
+              result.requestId
+
+            );
+
+
+
+
+
+            document
+
+              .getElementById('sickStart')
+
+              .value = '';
+
+
+
+
+
+            document
+
+              .getElementById('sickEnd')
+
+              .value = '';
+
+
+
+
+
+            document
+
+              .getElementById('sickReason')
+
+              .value = '';
+
+
+
+
+
+            document
+
+              .getElementById('medicalFile')
+
+              .value = '';
+
+
+
+          }
+
+        )
+
+
+
+        .withFailureHandler(
+
+          function(error) {
+
+
+
+            button.disabled = false;
+
+
+
+            button.innerText =
+
+              '📤 Kirim Cuti Sakit';
+
+
+
+
+
+            message.className =
+
+              'message error';
+
+
+
+            message.innerText =
+
+              'Gagal menyimpan: ' +
+
+              (
+
+                error &&
+
+                error.message
+
+                  ? error.message
+
+                  : 'Unknown error'
+
+              );
+
+
+
+          }
+
+        )
+
+
+
+        .submitRequest(requestData);
+
+
+
+    };
+
+
+
+
+
+  reader.onerror =
+
+    function() {
+
+
+
+      button.disabled = false;
+
+
+
+      button.innerText =
+
+        '📤 Kirim Cuti Sakit';
+
+
+
+      message.className =
+
+        'message error';
+
+
+
+      message.innerText =
+
+        'Gagal membaca file.';
+
+
+
+    };
+
+
+
+
+
+  reader.readAsDataURL(file);
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// SUCCESS
+
+// ======================================================
+
+
+
+function showSuccess(requestId) {
+
+
+
+  document
+
+    .getElementById('successResult')
+
+    .style.display =
+
+    'block';
+
+
+
+
+
+  document
+
+    .getElementById('successRequestId')
+
+    .innerText =
+
+    requestId || '';
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// ======================================================
+// RIWAYAT PENGAJUAN
+// ======================================================
+
+function loadLeaveBalance() {
+  if (!currentEmployee) return;
+
+  const card = document.getElementById('leaveBalanceCard');
+  const quotaEl = document.getElementById('leaveQuotaResult');
+  const usedEl = document.getElementById('leaveUsedResult');
+  const additionalEl = document.getElementById('leaveAdditionalResult');
+  const remainingEl = document.getElementById('leaveRemainingResult');
+  const alCarryoverEl = document.getElementById('alCarryoverResult');
+  const alCarryoverUsedEl = document.getElementById('alCarryoverUsedResult');
+  const alCarryoverRemainingEl = document.getElementById('alCarryoverRemainingResult');
+  const alCarryoverStatusEl = document.getElementById('alCarryoverStatusResult');
+  const dpQuotaEl = document.getElementById('dpQuotaResult');
+  const dpUsedEl = document.getElementById('dpUsedResult');
+  const dpAdditionalEl = document.getElementById('dpAdditionalResult');
+  const dpRemainingEl = document.getElementById('dpRemainingResult');
+  const noteEl = document.getElementById('leaveBalanceNote');
+
+  if (!card) return;
+
+  card.style.display = 'block';
+  quotaEl.innerText = 'Mengambil...';
+  usedEl.innerText = 'Mengambil...';
+  if (additionalEl) additionalEl.innerText = 'Mengambil...';
+  remainingEl.innerText = 'Mengambil...';
+  alCarryoverEl.innerText = 'Mengambil...';
+  alCarryoverUsedEl.innerText = 'Mengambil...';
+  alCarryoverRemainingEl.innerText = 'Mengambil...';
+  alCarryoverStatusEl.innerText = 'Mengambil...';
+  dpQuotaEl.innerText = 'Mengambil...';
+  dpUsedEl.innerText = 'Mengambil...';
+  if (dpAdditionalEl) dpAdditionalEl.innerText = 'Mengambil...';
+  dpRemainingEl.innerText = 'Mengambil...';
+  noteEl.innerText = '';
+
+  google.script.run
+    .withSuccessHandler(function(balance) {
+      const alConfigured = !!(balance && balance.alConfigured);
+      const dpConfigured = !!(balance && balance.dpConfigured);
+
+      quotaEl.innerText = alConfigured ? String(balance.alTotalQuota != null ? balance.alTotalQuota : balance.alQuota) + ' hari' : 'Belum diatur';
+      if (additionalEl) additionalEl.innerText = String(balance && balance.alAdditional != null ? balance.alAdditional : 0) + ' hari';
+      usedEl.innerText = String(balance && balance.alUsed != null ? balance.alUsed : 0) + ' hari';
+      remainingEl.innerText = alConfigured ? String(balance.alRemaining) + ' hari' : '-';
+
+      const carryoverInitial = Number(balance && balance.alCarryoverInitial != null ? balance.alCarryoverInitial : 0);
+      const carryoverUsed = Number(balance && balance.alCarryoverUsed != null ? balance.alCarryoverUsed : 0);
+      const carryoverRemaining = Number(balance && balance.alCarryoverRemaining != null ? balance.alCarryoverRemaining : 0);
+
+      alCarryoverEl.innerText = carryoverInitial + ' hari';
+      alCarryoverUsedEl.innerText = carryoverUsed + ' hari';
+      alCarryoverRemainingEl.innerText = carryoverRemaining + ' hari';
+      alCarryoverStatusEl.innerText = balance && balance.alCarryoverStatus ? balance.alCarryoverStatus : '-';
+
+      dpQuotaEl.innerText = dpConfigured ? String(balance.dpTotalQuota != null ? balance.dpTotalQuota : balance.dpQuota) + ' hari' : 'Belum diatur';
+      if (dpAdditionalEl) dpAdditionalEl.innerText = String(balance && balance.dpAdditional != null ? balance.dpAdditional : 0) + ' hari';
+      dpUsedEl.innerText = String(balance && balance.dpUsed != null ? balance.dpUsed : 0) + ' hari';
+      dpRemainingEl.innerText = dpConfigured ? String(balance.dpRemaining) + ' hari' : '-';
+
+      const notes = [];
+      if (balance && balance.balanceMode === 'MANUAL') notes.push('Saldo AL dibaca dari kolom Balance AL (F) dan saldo DP dari Balance DP (K) di LEAVE_BALANCE. Estimasi carryover dibatasi maksimal 5 hari gabungan dengan prioritas AL; angka ini hanya tampilan sementara sampai otomatisasi diaktifkan.');
+      if (balance && balance.balanceMode !== 'MANUAL' && balance.alJoinDate) notes.push('AL bertambah 1 hari setiap bulan berdasarkan Join Date ' + balance.alJoinDate + '. Pada Januari-Maret 2027, AL baru tetap bertambah 1 hari per bulan dan carryover AL 2026 tetap dapat digunakan sampai 31/03/2027.');
+      if (balance && balance.balanceMode !== 'MANUAL' && balance.alCarryoverInitial != null) {
+        notes.push('Sisa AL 2026 dapat dibawa ke 2027 maksimal 5 hari dan berlaku sampai 31/03/2027.');
+      }
+      if (!dpConfigured) notes.push('Quota DP belum diatur HR.');
+      noteEl.innerText = notes.length
+        ? notes.join(' ')
+        : (balance && balance.balanceMode === 'MANUAL' ? 'Saldo mengikuti nilai yang tercatat pada LEAVE_BALANCE.' : 'Saldo AL dihitung dari akumulasi bulanan dan kebijakan carryover 2026→2027; DP dihitung dari quota DP yang diatur HR.');
+    })
+    .withFailureHandler(function(error) {
+      quotaEl.innerText = '-';
+      usedEl.innerText = '-';
+      if (additionalEl) additionalEl.innerText = '-';
+      remainingEl.innerText = '-';
+      alCarryoverEl.innerText = '-';
+      alCarryoverUsedEl.innerText = '-';
+      alCarryoverRemainingEl.innerText = '-';
+      alCarryoverStatusEl.innerText = '-';
+      dpQuotaEl.innerText = '-';
+      dpUsedEl.innerText = '-';
+      if (dpAdditionalEl) dpAdditionalEl.innerText = '-';
+      dpRemainingEl.innerText = '-';
+      noteEl.innerText = error && error.message ? error.message : 'Saldo leave tidak dapat diambil.';
+    })
+    .getLeaveBalance(currentEmployee.id);
+}
+
+
+function showHistory() {
+  if (!currentEmployee) { alert('Silakan cari ID Karyawan terlebih dahulu.'); return; }
+  document.getElementById('employeeSection').style.display = 'none';
+  document.getElementById('leaveForm').style.display = 'none';
+  document.getElementById('sickForm').style.display = 'none';
+  const successResult = document.getElementById('successResult');
+  if (successResult) successResult.style.display = 'none';
+  document.getElementById('historySection').style.display = 'block';
+  loadEmployeeHistory();
+}
+
+function loadEmployeeHistory() {
+  if (!currentEmployee) return;
+  const container = document.getElementById('historyContainer');
+  container.innerHTML = '<div class="loading">⏳ Mengambil riwayat pengajuan...</div>';
+  google.script.run
+    .withSuccessHandler(function(requests) { renderEmployeeHistory(requests || []); })
+    .withFailureHandler(function(error) {
+      container.innerHTML = '<div class="message error" style="display:block;">Gagal mengambil riwayat: ' + escapeHtml(error && error.message ? error.message : 'Unknown error') + '</div>';
+    })
+    .getEmployeeHistory(currentEmployee.id);
+}
+
+function renderEmployeeHistory(requests) {
+  const container = document.getElementById('historyContainer');
+  if (!requests.length) { container.innerHTML = '<div class="empty">Belum ada riwayat pengajuan.</div>'; return; }
+  let html = '';
+  requests.forEach(function(request) {
+    const status = String(request.status || '').trim().toUpperCase();
+    const statusClass = status === 'APPROVED' ? 'status-approved' : status === 'REJECTED' ? 'status-rejected' : 'status-pending';
+    const requestType = String(request.requestType || '').toUpperCase();
+    const leaveType = String(request.leaveType || '').toUpperCase();
+    let typeLabel = requestType;
+    if (requestType === 'LEAVE') typeLabel = leaveType + ' - ' + getLeaveLabel(leaveType);
+    if (requestType === 'SICK') typeLabel = 'SL - Cuti Sakit';
+    html += '<div class="request-card">' +
+      '<div class="request-title">📋 ' + escapeHtml(request.requestId || '') + '</div>' +
+      '<div class="request-row"><strong>Kategori</strong>' + escapeHtml(typeLabel) + '</div>' +
+      '<div class="request-row"><strong>Mulai</strong>' + escapeHtml(request.startDate || '') + '</div>' +
+      '<div class="request-row"><strong>Selesai</strong>' + escapeHtml(request.endDate || '') + '</div>' +
+      '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(request.reason || '') + '</div>' +
+      '<div class="request-row"><strong>Diajukan</strong>' + escapeHtml(request.timestamp || '') + '</div>' +
+      '<div class="request-row"><strong>Status</strong><span class="status ' + statusClass + '">' + escapeHtml(status === 'APPROVED' ? 'Disetujui' : status === 'REJECTED' ? 'Ditolak' : status === 'PENDING' ? 'Menunggu Persetujuan' : (status || '-')) + '</span></div>' +
+      (request.approvedBy ? '<div class="request-row"><strong>Diproses oleh</strong>' + escapeHtml(request.approvedBy) + '</div>' : '') +
+      (request.approvedTime ? '<div class="request-row"><strong>Waktu proses</strong>' + escapeHtml(request.approvedTime) + '</div>' : '') +
+      (request.rejectReason ? '<div class="request-row"><strong>Alasan Penolakan</strong>' + escapeHtml(request.rejectReason) + '</div>' : '') +
+      (request.medicalCertificate ? '<div class="request-row"><strong>Surat Dokter</strong><a href="' + escapeAttribute(request.medicalCertificate) + '" target="_blank">📎 Buka File</a></div>' : '') +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+
+// MANAGER
+
+// ======================================================
+
+
+
+function loadPendingRequests(silent) {
+
+  const container = document.getElementById('pendingContainer');
+
+  if (!silent) {
+    container.innerHTML = '<div class="loading">⏳ Mengambil data pengajuan...</div>';
+  }
+
+  google.script.run
+    .withSuccessHandler(function(requests) {
+      const list = requests || [];
+      updatePendingNotification(list.length);
+      renderPendingRequests(list);
+      loadPendingExtraRequests();
+    })
+    .withFailureHandler(function(error) {
+      updatePendingNotification(null);
+
+      if (!silent) {
+        container.innerHTML =
+          '<div class="message error" style="display:block;">' +
+          'Gagal mengambil data: ' +
+          escapeHtml(error && error.message ? error.message : 'Unknown error') +
+          '</div>';
+      }
+    })
+    .getPendingRequests(managerToken);
+}
+
+function updatePendingNotification(count) {
+  const box = document.getElementById('pendingNotification');
+  const text = document.getElementById('pendingNotificationText');
+  const countEl = document.getElementById('pendingNotificationCount');
+
+  if (!box || !text || !countEl) return;
+
+  if (count === null || count === undefined) {
+    box.className = 'pending-notification empty';
+    text.innerText = 'Data PENDING belum dapat diperbarui.';
+    countEl.innerText = '?';
+    return;
+  }
+
+  countEl.innerText = String(count);
+
+  if (count > 0) {
+    box.className = 'pending-notification';
+    text.innerText = count + ' pengajuan menunggu diproses.';
+  } else {
+    box.className = 'pending-notification empty';
+    text.innerText = 'Tidak ada pengajuan PENDING saat ini.';
+  }
+}
+
+function startManagerAutoRefresh() {
+  stopManagerAutoRefresh();
+
+  managerRefreshTimer = setInterval(function() {
+    if (managerToken) {
+      loadPendingRequests(true);
+    }
+  }, 60000);
+}
+
+function stopManagerAutoRefresh() {
+  if (managerRefreshTimer) {
+    clearInterval(managerRefreshTimer);
+    managerRefreshTimer = null;
+  }
+}
+
+// ======================================================
+
+// RENDER PENDING
+
+// ======================================================
+
+
+
+function renderPendingRequests(
+
+  requests
+
+) {
+
+
+
+  const container =
+
+    document
+
+      .getElementById('pendingContainer');
+
+
+
+
+
+  if (!requests.length) {
+
+
+
+    container.innerHTML =
+
+      '<div class="empty">' +
+
+      '🎉 Tidak ada pengajuan PENDING.' +
+
+      '</div>';
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  let html = '';
+
+
+
+
+
+  requests.forEach(
+
+    function(request) {
+
+
+
+      const requestId =
+
+        request.requestId || '';
+
+
+
+      const employeeId =
+
+        request.employeeId || '';
+
+
+
+      const name =
+
+        request.name || '';
+
+
+
+      const position =
+
+        request.position || '';
+
+
+
+      const requestType =
+
+        request.requestType || '';
+
+
+
+      const leaveType =
+
+        request.leaveType || '';
+
+
+
+      const startDate =
+
+        formatDateValue(
+
+          request.startDate
+
+        );
+
+
+
+      const endDate =
+
+        formatDateValue(
+
+          request.endDate
+
+        );
+
+
+
+      const reason =
+
+        request.reason || '';
+
+
+
+      const medical =
+
+        request.medicalCertificate || '';
+
+
+
+
+
+      let typeLabel =
+
+        requestType;
+
+
+
+
+
+      if (
+
+        requestType === 'LEAVE'
+
+      ) {
+
+
+
+        typeLabel =
+
+          leaveType +
+
+          ' - ' +
+
+          getLeaveLabel(
+
+            leaveType
+
+          );
+
+
+
+      }
+
+
+
+
+
+      if (
+
+        requestType === 'SICK'
+
+      ) {
+
+
+
+        typeLabel =
+
+          'SL - Cuti Sakit';
+
+
+
+      }
+
+
+
+
+
+      html +=
+
+        '<div class="request-card">' +
+
+
+
+          '<div class="request-title">' +
+
+            '📋 ' +
+
+            escapeHtml(requestId) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>ID Karyawan</strong>' +
+
+            escapeHtml(employeeId) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Nama</strong>' +
+
+            escapeHtml(name) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Jabatan</strong>' +
+
+            escapeHtml(position) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Kategori</strong>' +
+
+            escapeHtml(typeLabel) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Mulai</strong>' +
+
+            escapeHtml(startDate) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Selesai</strong>' +
+
+            escapeHtml(endDate) +
+
+          '</div>' +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Keterangan</strong>' +
+
+            escapeHtml(reason) +
+
+          '</div>' +
+
+
+
+          (
+
+            medical
+
+              ? (
+
+                '<div class="request-row">' +
+
+                  '<strong>Surat Dokter</strong>' +
+
+                  '<a href="' +
+
+                    escapeAttribute(medical) +
+
+                    '" target="_blank">' +
+
+                    '📎 Buka File' +
+
+                  '</a>' +
+
+                '</div>'
+
+              )
+
+              : ''
+
+          ) +
+
+
+
+          '<div class="request-row">' +
+
+            '<strong>Status</strong>' +
+
+            '<span class="status status-pending">' +
+
+              'PENDING' +
+
+            '</span>' +
+
+          '</div>' +
+
+
+
+          '<div class="request-actions">' +
+
+
+
+            '<button ' +
+
+              'class="btn-approve" ' +
+
+              'onclick="approveRequest(\'' +
+
+                escapeJs(requestId) +
+
+              '\')">' +
+
+              '✅ SETUJUI' +
+
+            '</button>' +
+
+
+
+            '<button ' +
+
+              'class="btn-reject" ' +
+
+              'onclick="rejectRequest(\'' +
+
+                escapeJs(requestId) +
+
+              '\')">' +
+
+              '❌ TOLAK' +
+
+            '</button>' +
+
+
+
+          '</div>' +
+
+
+
+        '</div>';
+
+
+
+    }
+
+  );
+
+
+
+
+
+  container.innerHTML =
+
+    html;
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// LABEL KATEGORI
+
+// ======================================================
+
+
+
+function getLeaveLabel(
+
+  code
+
+) {
+
+
+
+  const labels = {
+
+
+
+    AL: 'Cuti Tahunan',
+
+
+
+    DP: 'Pengganti Hari Libur',
+
+
+
+    UL: 'Cuti Tanpa Dibayar',
+
+
+
+    ML: 'Cuti Melahirkan',
+
+
+
+    MR: 'Cuti Menikah',
+
+
+
+    BL: 'Cuti Kedukaan',
+
+
+
+    EO: 'Libur Tambahan',
+
+
+
+    CT: 'Klaim Lembur',
+
+
+
+    SL: 'Cuti Sakit'
+
+
+
+  };
+
+
+
+
+
+  return labels[code] || code;
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+
+// ======================================================
+// REKAP & AUDIT
+// ======================================================
+
+function toggleAuditPanel() {
+  const panel = document.getElementById('auditPanel');
+  if (!panel) return;
+  const opening = panel.style.display === 'none' || !panel.style.display;
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) loadAuditSummary();
+}
+
+function resetAuditFilters() {
+  document.getElementById('auditFrom').value = '';
+  document.getElementById('auditTo').value = '';
+  document.getElementById('auditEmployee').value = '';
+  document.getElementById('auditCategory').value = 'ALL';
+  document.getElementById('auditStatus').value = 'ALL';
+  document.getElementById('auditSummaryContainer').innerHTML = '<div class="empty">Filter direset. Klik Tampilkan Rekap untuk memuat data.</div>';
+  const message = document.getElementById('auditMessage');
+  message.className = 'message';
+  message.innerText = '';
+}
+
+function loadAuditSummary() {
+  const container = document.getElementById('auditSummaryContainer');
+  const message = document.getElementById('auditMessage');
+  container.innerHTML = '<div class="loading">⏳ Mengambil rekap pengajuan...</div>';
+  message.className = 'message';
+  message.innerText = '';
+
+  const filters = {
+    fromDate: document.getElementById('auditFrom').value,
+    toDate: document.getElementById('auditTo').value,
+    employee: document.getElementById('auditEmployee').value.trim(),
+    category: document.getElementById('auditCategory').value,
+    status: document.getElementById('auditStatus').value
+  };
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (!result || !result.success) {
+        container.innerHTML = '<div class="message error" style="display:block;">Rekap tidak tersedia.</div>';
+        return;
+      }
+      renderAuditSummary(result);
+    })
+    .withFailureHandler(function(error) {
+      container.innerHTML = '<div class="message error" style="display:block;">Gagal mengambil rekap: ' +
+        escapeHtml(error && error.message ? error.message : 'Unknown error') + '</div>';
+    })
+    .getAuditSummary(managerToken, filters);
+}
+
+function renderAuditSummary(result) {
+  const summary = result.summary || {};
+  const rows = result.rows || [];
+  const container = document.getElementById('auditSummaryContainer');
+  let html = '<div class="audit-summary-grid">';
+  html += auditSummaryCard('Total', summary.total || 0);
+  html += auditSummaryCard('Pending', summary.pending || 0);
+  html += auditSummaryCard('Approved', summary.approved || 0);
+  html += auditSummaryCard('Rejected', summary.rejected || 0);
+  html += auditSummaryCard('Cuti', summary.leave || 0);
+  html += auditSummaryCard('Sakit', summary.sick || 0);
+  html += auditSummaryCard('Hari Approved', summary.approvedDays || 0);
+  html += '</div>';
+
+  if (!rows.length) {
+    html += '<div class="empty" style="margin-top:15px;">Tidak ada data sesuai filter.</div>';
+    container.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="audit-table-wrap"><table class="audit-table"><thead><tr>' +
+    '<th>Nomor Pengajuan</th><th>Tanggal Pengajuan</th><th>Karyawan</th><th>Kategori</th><th>Periode Cuti</th>' +
+    '<th>Hari</th><th>Status</th><th>Penyetuju</th><th>Detail</th>' +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(row) {
+    const statusClass = String(row.status || '').toLowerCase();
+    const categoryLabel = row.leaveType + ' - ' + getLeaveLabel(row.leaveType);
+    const detail = row.status === 'REJECTED'
+      ? 'Alasan: ' + (row.rejectReason || '-')
+      : row.status === 'APPROVED'
+        ? 'Diproses: ' + (row.approvedTime || '-')
+        : 'Belum diproses';
+
+    html += '<tr>' +
+      '<td>' + escapeHtml(row.requestId) + '</td>' +
+      '<td>' + escapeHtml(row.timestamp) + '</td>' +
+      '<td><strong>' + escapeHtml(row.employeeId) + '</strong><br>' + escapeHtml(row.name) + '</td>' +
+      '<td>' + escapeHtml(categoryLabel) + '</td>' +
+      '<td>' + escapeHtml(row.startDate) + ' s/d ' + escapeHtml(row.endDate) + '</td>' +
+      '<td>' + escapeHtml(String(row.durationDays || 0)) + '</td>' +
+      '<td><span class="audit-status ' + statusClass + '">' + escapeHtml(row.status) + '</span></td>' +
+      '<td>' + escapeHtml(row.approvedBy || '-') + '</td>' +
+      '<td>' + escapeHtml(detail) + '</td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function auditSummaryCard(label, value) {
+  return '<div class="audit-summary-card"><div class="label">' + escapeHtml(label) +
+    '</div><div class="value">' + escapeHtml(String(value)) + '</div></div>';
+}
+
+// SETUJUI
+
+// ======================================================
+
+
+
+function approveRequest(
+
+  requestId
+
+) {
+
+
+
+  const approver =
+
+    document
+
+      .getElementById('approverName')
+
+      .value
+
+      .trim();
+
+
+
+
+
+  if (!approver) {
+
+
+
+    alert(
+
+      'Isi Nama Manajer / Penyetuju terlebih dahulu.'
+
+    );
+
+
+
+    document
+
+      .getElementById('approverName')
+
+      .focus();
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const confirmation =
+
+    confirm(
+
+      'Approve request ' +
+
+      requestId +
+
+      '?'
+
+    );
+
+
+
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
+
+
+
+  const message =
+
+    document
+
+      .getElementById('managerMessage');
+
+
+
+
+
+  message.className =
+
+    'message success';
+
+
+
+  message.innerText =
+
+    '⏳ Memproses approval...';
+
+
+
+
+
+  google.script.run
+
+
+
+    .withSuccessHandler(
+
+      function(result) {
+
+
+
+        if (
+
+          result &&
+
+          result.success
+
+        ) {
+
+
+
+          message.className =
+
+            'message success';
+
+
+
+          message.innerText =
+
+            '✅ Request ' +
+
+            result.requestId +
+
+            ' berhasil APPROVED.';
+
+
+
+
+
+          loadPendingRequests();
+
+
+
+        }
+
+
+
+      }
+
+    )
+
+
+
+    .withFailureHandler(
+
+      function(error) {
+
+
+
+        message.className =
+
+          'message error';
+
+
+
+        message.innerText =
+
+          'Gagal approve: ' +
+
+          (
+
+            error &&
+
+            error.message
+
+              ? error.message
+
+              : 'Unknown error'
+
+          );
+
+
+
+      }
+
+    )
+
+
+
+    .approveRequest(
+
+      requestId,
+
+      approver,
+      managerToken
+    );
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// TOLAK
+
+// ======================================================
+
+
+
+function rejectRequest(
+
+  requestId
+
+) {
+
+
+
+  const approver =
+
+    document
+
+      .getElementById('approverName')
+
+      .value
+
+      .trim();
+
+
+
+
+
+  if (!approver) {
+
+
+
+    alert(
+
+      'Isi Nama Manajer / Penyetuju terlebih dahulu.'
+
+    );
+
+
+
+    document
+
+      .getElementById('approverName')
+
+      .focus();
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const reason =
+
+    prompt(
+
+      'Masukkan alasan penolakan untuk ' +
+
+      requestId +
+
+      ':'
+
+    );
+
+
+
+
+
+  if (
+
+    reason === null
+
+  ) {
+
+    return;
+
+  }
+
+
+
+
+
+  const cleanReason =
+
+    reason.trim();
+
+
+
+
+
+  if (!cleanReason) {
+
+
+
+    alert(
+
+      'Alasan penolakan wajib diisi.'
+
+    );
+
+
+
+    return;
+
+
+
+  }
+
+
+
+
+
+  const confirmation =
+
+    confirm(
+
+      'Tolak request ' +
+
+      requestId +
+
+      '?'
+
+    );
+
+
+
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
+
+
+
+  const message =
+
+    document
+
+      .getElementById('managerMessage');
+
+
+
+
+
+  message.className =
+
+    'message success';
+
+
+
+  message.innerText =
+
+    '⏳ Memproses penolakan...';
+
+
+
+
+
+  google.script.run
+
+
+
+    .withSuccessHandler(
+
+      function(result) {
+
+
+
+        if (
+
+          result &&
+
+          result.success
+
+        ) {
+
+
+
+          message.className =
+
+            'message success';
+
+
+
+          message.innerText =
+
+            '❌ Request ' +
+
+            result.requestId +
+
+            ' berhasil REJECTED.';
+
+
+
+
+
+          loadPendingRequests();
+
+
+
+        }
+
+
+
+      }
+
+    )
+
+
+
+    .withFailureHandler(
+
+      function(error) {
+
+
+
+        message.className =
+
+          'message error';
+
+
+
+        message.innerText =
+
+          'Gagal reject: ' +
+
+          (
+
+            error &&
+
+            error.message
+
+              ? error.message
+
+              : 'Unknown error'
+
+          );
+
+
+
+      }
+
+    )
+
+
+
+    .rejectRequest(
+
+      requestId,
+
+      approver,
+
+      cleanReason,
+      managerToken
+    );
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// FORMAT DATE
+
+// ======================================================
+
+
+
+function formatDateValue(
+
+  value
+
+) {
+
+
+
+  if (!value) {
+
+    return '-';
+
+  }
+
+
+
+
+
+  const text =
+
+    String(value);
+
+
+
+
+
+  if (
+
+    /^\d{4}-\d{2}-\d{2}$/.test(text)
+
+  ) {
+
+
+
+    const parts =
+
+      text.split('-');
+
+
+
+    return (
+
+      parts[2] +
+
+      '/' +
+
+      parts[1] +
+
+      '/' +
+
+      parts[0]
+
+    );
+
+
+
+  }
+
+
+
+
+
+  const date =
+
+    new Date(value);
+
+
+
+
+
+  if (
+
+    !isNaN(date.getTime())
+
+  ) {
+
+
+
+    return (
+
+      String(
+
+        date.getDate()
+
+      ).padStart(2, '0') +
+
+      '/' +
+
+      String(
+
+        date.getMonth() + 1
+
+      ).padStart(2, '0') +
+
+      '/' +
+
+      date.getFullYear()
+
+    );
+
+
+
+  }
+
+
+
+
+
+  return text;
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// ESCAPE HTML
+
+// ======================================================
+
+
+
+function escapeHtml(
+
+  value
+
+) {
+
+
+
+  return String(value || '')
+
+    .replace(/&/g, '&amp;')
+
+    .replace(/</g, '&lt;')
+
+    .replace(/>/g, '&gt;')
+
+    .replace(/"/g, '&quot;')
+
+    .replace(/'/g, '&#039;');
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// ESCAPE ATTRIBUTE
+
+// ======================================================
+
+
+
+function escapeAttribute(
+
+  value
+
+) {
+
+
+
+  return String(value || '')
+
+    .replace(/&/g, '&amp;')
+
+    .replace(/"/g, '&quot;')
+
+    .replace(/</g, '&lt;')
+
+    .replace(/>/g, '&gt;');
+
+
+
+}
+
+
+
+
+
+// ======================================================
+
+// ESCAPE JAVASCRIPT
+
+// ======================================================
+
+
+
+function escapeJs(value) {
+  return String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+}
+
+
+
+// ======================================================
+// JS FITUR TAMBAHAN
+// ======================================================
+function hideEmployeeSubpanels_() {
+  ['leaveForm','sickForm','historySection','featurePanel','overtimePanel','ctPanel','shiftSwapPanel','featureHistoryPanel','successResult'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+function setFeatureStaffLabels_() {
+  if (!currentEmployee) return;
+  const label = String(currentEmployee.id || '') + ' - ' + String(currentEmployee.name || '') +
+    (currentEmployee.position ? ' · ' + String(currentEmployee.position) : '');
+  ['overtimeStaffLabel','ctStaffLabel','swapStaffLabel'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = 'Karyawan: ' + label;
+  });
+}
+function showFeaturePanel() {
+  if (!currentEmployee) { alert('Silakan cari data karyawan terlebih dahulu.'); return; }
+  hideEmployeeSubpanels_();
+  document.getElementById('employeeSection').style.display = 'none';
+  document.getElementById('featurePanel').style.display = 'block';
+  document.getElementById('featureEmployeeId').innerText = currentEmployee.id;
+  document.getElementById('featureEmployeeName').innerText = currentEmployee.name;
+  setFeatureStaffLabels_();
+}
+function openEmployeeFeaturePanel_(panelId) {
+  if (!currentEmployee) { alert('Silakan cari data karyawan terlebih dahulu.'); return; }
+  hideEmployeeSubpanels_();
+  document.getElementById('employeeSection').style.display = 'none';
+  const panel = document.getElementById(panelId);
+  if (panel) panel.style.display = 'block';
+  setFeatureStaffLabels_();
+}
+function showOvertimePanel() { openEmployeeFeaturePanel_('overtimePanel'); }
+function showCTPanel() { openEmployeeFeaturePanel_('ctPanel'); }
+function showShiftSwapPanel() {
+  openEmployeeFeaturePanel_('shiftSwapPanel');
+  // Form pasangan hanya untuk Pihak 1 yang membuat pengajuan baru.
+  // Pihak 2 tidak perlu mengisi nama/ID lagi: pengajuan yang ditujukan
+  // kepadanya dimuat otomatis dari riwayat berdasarkan currentEmployee.id.
+  const input = document.getElementById('swapPartnerId');
+  if (input) input.value = '';
+  if (window.resetSelectedSwapPartner_) window.resetSelectedSwapPartner_();
+  const pendingBox = document.getElementById('swapPendingConfirmContainer');
+  if (pendingBox) pendingBox.innerHTML = '<div class="loading">Memeriksa pengajuan Shift Swap untuk ' + escapeHtml(String(currentEmployee && currentEmployee.name || 'karyawan ini')) + '...</div>';
+  loadFeatureHistory();
+}
+function showFeatureHistoryPanel() {
+  openEmployeeFeaturePanel_('featureHistoryPanel');
+  loadFeatureHistory();
+}
+function showManagerMonthlyBalancePanel_() {
+  if (!managerToken) { alert('Silakan masuk sebagai Manager terlebih dahulu.'); return; }
+  const panel = document.getElementById('managerMonthlyBalancePanel');
+  panel.style.display = 'block';
+  const select = document.getElementById('managerMonthlyEmployee');
+  if (select.options.length <= 1) {
+    google.script.run.withSuccessHandler(function(employees) {
+      (employees || []).forEach(function(employee) {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = employee.id + ' - ' + employee.name;
+        select.appendChild(option);
+      });
+    }).withFailureHandler(function(err) {
+      document.getElementById('managerMonthlyBalanceContainer').innerHTML = '<div class="message error" style="display:block;">' + escapeHtml(err && err.message ? err.message : 'Daftar karyawan gagal dimuat.') + '</div>';
+    }).getActiveEmployees();
+  }
+}
+function hideManagerMonthlyBalancePanel_() {
+  const panel = document.getElementById('managerMonthlyBalancePanel');
+  if (panel) panel.style.display = 'none';
+}
+function setFeatureMessage_(id, message, success) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'message ' + (success ? 'success' : 'error');
+  el.innerText = message || '';
+}
+function overtimeAction(action) {
+  if (!currentEmployee) return alert('Data karyawan tidak ditemukan.');
+  const note = document.getElementById('overtimeNote').value.trim();
+  google.script.run.withSuccessHandler(function(res) {
+    setFeatureMessage_('overtimeMessage', res.message || 'Berhasil.', true);
+    loadFeatureHistory();
+  }).withFailureHandler(function(err) {
+    setFeatureMessage_('overtimeMessage', err && err.message ? err.message : 'Gagal mencatat overtime.', false);
+  }).recordOvertimeAction(currentEmployee.id, action, note);
+}
+function submitCTForm() {
+  if (!currentEmployee) return alert('Data karyawan tidak ditemukan.');
+  const date = document.getElementById('ctDate').value;
+  const hours = document.getElementById('ctHours').value;
+  const timing = document.getElementById('ctTiming').value;
+  const reason = document.getElementById('ctReason').value.trim();
+  google.script.run.withSuccessHandler(function(res) {
+    setFeatureMessage_('ctMessage', 'Pengajuan CT ' + res.requestId + ' terkirim. Setara ' + Number(res.daysEquivalent).toFixed(2) + ' hari; menunggu persetujuan manager.', true);
+    loadFeatureHistory();
+  }).withFailureHandler(function(err) {
+    setFeatureMessage_('ctMessage', err && err.message ? err.message : 'Pengajuan CT gagal.', false);
+  }).submitCTRequest(currentEmployee.id, date, hours, timing, reason);
+}
+function submitSwapForm() {
+  if (!currentEmployee) return alert('Data karyawan tidak ditemukan.');
+  const partnerId = window.getSelectedSwapPartnerId_ ? window.getSelectedSwapPartnerId_() : '';
+  if (!partnerId) {
+    setFeatureMessage_('swapMessage', 'Pilih pasangan dari daftar saran (ID Staff - Nama Staff) dengan posisi yang sama.', false);
+    document.getElementById('swapPartnerId').focus();
+    return;
+  }
+  google.script.run.withSuccessHandler(function(res) {
+    setFeatureMessage_('swapMessage', res.message + ' ID: ' + res.requestId, true);
+    loadFeatureHistory();
+  }).withFailureHandler(function(err) {
+    setFeatureMessage_('swapMessage', err && err.message ? err.message : 'Pengajuan shift swap gagal.', false);
+  }).submitShiftSwap(currentEmployee.id,
+    partnerId,
+    document.getElementById('swapDate1').value,
+    document.getElementById('swapDate2').value,
+    document.getElementById('swapNote').value.trim());
+}
+function confirmSwapForm() {
+  if (!currentEmployee) return alert('Data karyawan tidak ditemukan.');
+  confirmSwapById(document.getElementById('swapConfirmId').value.trim());
+}
+function confirmSwapById(requestId) {
+  if (!currentEmployee) return alert('Data karyawan tidak ditemukan.');
+  requestId = String(requestId || '').trim();
+  if (!requestId) {
+    setFeatureMessage_('swapConfirmMessage', 'Pilih pengajuan yang menunggu konfirmasi atau masukkan ID pengajuan.', false);
+    return;
+  }
+  google.script.run.withSuccessHandler(function(res) {
+    setFeatureMessage_('swapConfirmMessage', res.message, true);
+    loadFeatureHistory();
+  }).withFailureHandler(function(err) {
+    setFeatureMessage_('swapConfirmMessage', err && err.message ? err.message : 'Konfirmasi shift swap gagal.', false);
+    loadFeatureHistory();
+  }).confirmShiftSwap(currentEmployee.id, requestId);
+}
+function loadFeatureHistory() {
+  if (!currentEmployee) return;
+  const box = document.getElementById('featureHistoryContainer');
+  box.innerHTML = '<div class="loading">Mengambil riwayat...</div>';
+  google.script.run.withSuccessHandler(function(data) {
+    data = data || { overtime:[], ct:[], swaps:[] };
+    const pendingBox = document.getElementById('swapPendingConfirmContainer');
+    if (pendingBox) {
+      const pendingSwaps = (data.swaps || []).filter(function(r) {
+        return String(r.partnerId || '') === String(currentEmployee.id) && r.status === 'WAITING_PARTNER';
+      });
+      if (!pendingSwaps.length) {
+        pendingBox.innerHTML = '<div class="empty">Tidak ada pengajuan shift swap yang menunggu konfirmasi kamu.</div>';
+      } else {
+        let pendingHtml = '';
+        pendingSwaps.forEach(function(r) {
+          pendingHtml += '<div class="request-card"><div class="request-title">Shift Swap · ' + escapeHtml(r.id) + '</div>' +
+            '<div class="request-row"><strong>Pihak 1 (Pengaju)</strong>' + escapeHtml(r.requester || r.requesterId || '-') + ' (' + escapeHtml(r.requesterId || '-') + ')</div>' +
+            '<div class="request-row"><strong>Pihak 2 (Pasangan)</strong>' + escapeHtml(r.partner || r.partnerId || '-') + ' (' + escapeHtml(r.partnerId || '-') + ')</div>' +
+            '<div class="request-row"><strong>Tanggal shift</strong>' + escapeHtml(r.date1 || '-') + ' ↔ ' + escapeHtml(r.date2 || '-') + '</div>' +
+            '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note || '-') + '</div>' +
+            '<button class="btn-submit" style="margin-top:10px;" onclick="confirmSwapById(&quot;' + escapeHtml(r.id) + '&quot;)">✅ Saya Konfirmasi Shift Swap Ini</button></div>';
+        });
+        pendingBox.innerHTML = pendingHtml;
+      }
+    }
+    let out = '<h4>Overtime</h4>';
+    if (!data.overtime.length) out += '<div class="empty">Belum ada catatan overtime.</div>';
+    data.overtime.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">' + escapeHtml(r.id) + ' · ' + escapeHtml(r.status) + '</div>' +
+        '<div class="request-row"><strong>Mulai</strong>' + escapeHtml(r.start || '-') + '</div>' +
+        '<div class="request-row"><strong>Selesai</strong>' + escapeHtml(r.end || '-') + '</div>' +
+        '<div class="request-row"><strong>Durasi</strong>' + escapeHtml(r.hours == null ? '-' : r.hours + ' jam') + '</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note || '-') + '</div></div>';
+    });
+    out += '<h4>CT</h4>';
+    if (!data.ct.length) out += '<div class="empty">Belum ada pengajuan CT.</div>';
+    data.overtime.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">Overtime · ' + escapeHtml(r.id) + '</div>' +
+        '<div class="request-row"><strong>Karyawan</strong>' + escapeHtml(r.name) + ' (' + escapeHtml(r.employeeId) + ')</div>' +
+        '<div class="request-row"><strong>Mulai</strong>' + escapeHtml(r.start) + '</div>' +
+        '<div class="request-row"><strong>Selesai</strong>' + escapeHtml(r.end) + '</div>' +
+        '<div class="request-row"><strong>Durasi</strong>' + escapeHtml(String(r.hours)) + ' jam</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note || '-') + '</div>' +
+        '<div class="request-actions"><button class="btn-approve" onclick="processExtraUI(\'OT\',\''+escapeJs(r.id)+'\',\'APPROVED\')">Setujui</button>' +
+        '<button class="btn-reject" onclick="processExtraUI(\'OT\',\''+escapeJs(r.id)+'\',\'REJECTED\')">Tolak</button></div></div>';
+    });
+    data.ct.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">' + escapeHtml(r.id) + ' · ' + escapeHtml(r.status) + '</div>' +
+        '<div class="request-row"><strong>Tanggal</strong>' + escapeHtml(r.date || '-') + '</div>' +
+        '<div class="request-row"><strong>Durasi</strong>' + escapeHtml(r.hours + ' jam (' + (Number(r.hours)/8).toFixed(2) + ' hari)') + '</div>' +
+        '<div class="request-row"><strong>Waktu CT</strong>' + escapeHtml(r.timing || '-') + '</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.reason || '-') + '</div></div>';
+    });
+    out += '<h4>Shift Swap</h4>';
+    if (!data.swaps.length) out += '<div class="empty">Belum ada pengajuan shift swap.</div>';
+    data.swaps.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">' + escapeHtml(r.id) + ' · ' + escapeHtml(r.status === 'SWAPPED' ? 'Jadwal Ditukar' : r.status) + '</div>' +
+        '<div class="request-row"><strong>Pihak 1 (Pengaju)</strong>' + escapeHtml(r.requester || r.requesterId || '-') + ' (' + escapeHtml(r.requesterId || '-') + ')</div>' +
+        '<div class="request-row"><strong>Pihak 2 (Pasangan)</strong>' + escapeHtml(r.partner || r.partnerId || '-') + ' (' + escapeHtml(r.partnerId || '-') + ')</div>' +
+        '<div class="request-row"><strong>Tanggal</strong>' + escapeHtml(r.date1 || '-') + ' ↔ ' + escapeHtml(r.date2 || '-') + '</div>' +
+        '<div class="request-row"><strong>Konfirmasi pasangan</strong>' + (r.partnerConfirmed ? 'Ya' : 'Belum') + '</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note || '-') + '</div></div>';
+    });
+    box.innerHTML = out;
+  }).withFailureHandler(function(err) {
+    box.innerHTML = '<div class="message error" style="display:block;">' + escapeHtml(err && err.message ? err.message : 'Riwayat gagal dimuat.') + '</div>';
+  }).getEmployeeFeatureHistory(currentEmployee.id);
+}
+function loadManagerMonthlyBalanceHistory_() {
+  if (!managerToken) { alert('Sesi manager tidak valid. Silakan masuk kembali.'); return; }
+  const employeeId = document.getElementById('managerMonthlyEmployee').value;
+  const box = document.getElementById('managerMonthlyBalanceContainer');
+  if (!employeeId) {
+    box.innerHTML = '<div class="empty">Silakan pilih karyawan terlebih dahulu.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="loading">Mengambil riwayat saldo bulanan...</div>';
+  google.script.run.withSuccessHandler(function(rows) {
+    rows = rows || [];
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty">Belum ada riwayat saldo bulanan untuk karyawan ini.</div>';
+      return;
+    }
+    let out = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
+      ['Bulan','Prev AL','AL Add','AL Taken','AL Balance','Prev DP','DP Add','DP Taken','DP Balance'].map(function(x) { return '<th style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">'+x+'</th>'; }).join('') +
+      '</tr></thead><tbody>';
+    rows.forEach(function(r) {
+      out += '<tr>' + [r.month,r.prevAL,r.alAdd,r.alTaken,r.alBalance,r.prevDP,r.dpAdd,r.dpTaken,r.dpBalance].map(function(v,i) {
+        return '<td style="padding:8px;border-bottom:1px solid #eee;text-align:'+(i===0?'left':'right')+';">'+escapeHtml(String(v))+'</td>';
+      }).join('') + '</tr>';
+    });
+    box.innerHTML = out + '</tbody></table></div>';
+  }).withFailureHandler(function(err) {
+    box.innerHTML = '<div class="message error" style="display:block;">' + escapeHtml(err && err.message ? err.message : 'Riwayat saldo gagal dimuat.') + '</div>';
+  }).getMonthlyLeaveBalanceHistory(employeeId, managerToken);
+}
+
+function loadPendingExtraRequests() {
+  if (!managerToken) { alert('Sesi manager tidak valid. Masuk kembali ke menu Manager.'); return; }
+  const box = document.getElementById('extraPendingContainer');
+  box.innerHTML = '<div class="loading">Mengambil overtime, CT, dan shift swap...</div>';
+  google.script.run.withSuccessHandler(function(data) {
+    data = data || {overtime:[],ct:[],swaps:[]};
+    data.overtime = data.overtime || []; data.ct = data.ct || []; data.swaps = data.swaps || [];
+    let out = '';
+    if (!data.overtime.length && !data.ct.length && !data.swaps.length) {
+      box.innerHTML = '<div class="empty">Tidak ada overtime atau CT yang menunggu persetujuan.</div>'; 
+      return;
+    }
+    data.overtime.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">Overtime · ' + escapeHtml(r.id) + '</div>' +
+        '<div class="request-row"><strong>Karyawan</strong>' + escapeHtml(r.name) + ' (' + escapeHtml(r.employeeId) + ')</div>' +
+        '<div class="request-row"><strong>Mulai</strong>' + escapeHtml(r.start) + '</div>' +
+        '<div class="request-row"><strong>Selesai</strong>' + escapeHtml(r.end) + '</div>' +
+        '<div class="request-row"><strong>Durasi</strong>' + escapeHtml(String(r.hours)) + ' jam</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note || '-') + '</div>' +
+        '<div class="request-actions"><button class="btn-approve" onclick="processExtraUI(\'OT\',\''+escapeJs(r.id)+'\',\'APPROVED\')">Setujui</button>' +
+        '<button class="btn-reject" onclick="processExtraUI(\'OT\',\''+escapeJs(r.id)+'\',\'REJECTED\')">Tolak</button></div></div>';
+    });
+    data.ct.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">CT · ' + escapeHtml(r.id) + '</div>' +
+        '<div class="request-row"><strong>Karyawan</strong>' + escapeHtml(r.name) + ' (' + escapeHtml(r.employeeId) + ')</div>' +
+        '<div class="request-row"><strong>Tanggal</strong>' + escapeHtml(r.date) + '</div>' +
+        '<div class="request-row"><strong>Durasi</strong>' + escapeHtml(r.hours + ' jam (' + (Number(r.hours)/8).toFixed(2) + ' hari)') + '</div>' +
+        '<div class="request-row"><strong>Penggunaan</strong>' + escapeHtml(r.timing) + '</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.reason) + '</div>' +
+        '<div class="request-actions"><button class="btn-approve" onclick="processExtraUI(\'CT\',\''+escapeJs(r.id)+'\',\'APPROVED\')">Setujui</button>' +
+        '<button class="btn-reject" onclick="processExtraUI(\'CT\',\''+escapeJs(r.id)+'\',\'REJECTED\')">Tolak</button></div></div>';
+    });
+    data.swaps.forEach(function(r) {
+      out += '<div class="request-card"><div class="request-title">Shift Swap · ' + escapeHtml(r.id) + '</div>' +
+        '<div class="request-row"><strong>Pengaju</strong>' + escapeHtml(r.name) + ' (' + escapeHtml(r.employeeId) + ')</div>' +
+        '<div class="request-row"><strong>Pasangan</strong>' + escapeHtml(r.partner) + ' (' + escapeHtml(r.partnerId) + ')</div>' +
+        '<div class="request-row"><strong>Tanggal</strong>' + escapeHtml(r.date1) + ' ↔ ' + escapeHtml(r.date2) + '</div>' +
+        '<div class="request-row"><strong>Keterangan</strong>' + escapeHtml(r.note) + '</div>' +
+        '<div class="request-actions"><button class="btn-approve" onclick="processExtraUI(\'SWAP\',\''+escapeJs(r.id)+'\',\'APPROVED\')">Setujui</button>' +
+        '<button class="btn-reject" onclick="processExtraUI(\'SWAP\',\''+escapeJs(r.id)+'\',\'REJECTED\')">Tolak</button></div></div>';
+    });
+    box.innerHTML = out;
+  }).withFailureHandler(function(err) {
+    box.innerHTML = '<div class="message error" style="display:block;">' + escapeHtml(err && err.message ? err.message : 'Permintaan gagal dimuat.') + '</div>';
+  }).getPendingExtraRequests(managerToken);
+}
+function processExtraUI(kind, id, decision) {
+  const approver = document.getElementById('approverName').value;
+  if (!approver) { alert('Pilih nama manager/penyetuju terlebih dahulu.'); return; }
+  const reason = decision === 'REJECTED' ? prompt('Masukkan alasan penolakan:') : '';
+  if (decision === 'REJECTED' && reason === null) return;
+  if (decision === 'REJECTED' && !String(reason || '').trim()) { alert('Alasan penolakan wajib diisi.'); return; }
+  google.script.run.withSuccessHandler(function() {
+    loadPendingExtraRequests();
+  }).withFailureHandler(function(err) {
+    alert(err && err.message ? err.message : 'Permintaan gagal diproses.');
+  }).processExtraRequest(managerToken, kind, id, decision, approver, reason || '');
+}
+
+</script>
+
+
+
+</body>
+
+</html>

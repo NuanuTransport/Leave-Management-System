@@ -842,7 +842,7 @@
     // ==================================================
     // GANTI DENGAN URL /exec DARI DEPLOYMENT APPS SCRIPT
     // ==================================================
-    const _URL = 'https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec';
 
     // ---------- Panggil Apps Script ----------
     function api(fn) {
@@ -855,7 +855,17 @@
         .catch(function () {
           throw new Error('Tidak bisa terhubung ke server. Periksa internet lalu coba lagi.');
         })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.text().then(function (txt) {
+            try { return JSON.parse(txt); }
+            catch (e) {
+              if (/accounts\.google\.com|ServiceLogin|Sign in/i.test(txt)) {
+                throw new Error('Server meminta login Google. Set deployment Apps Script ke "Who has access: Anyone".');
+              }
+              throw new Error('Server belum memakai kode terbaru. Di Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.');
+            }
+          });
+        })
         .then(function (res) {
           if (!res.ok) throw new Error(res.error || 'Terjadi kesalahan di server.');
           return res.result;
@@ -970,7 +980,10 @@
           return e.id.toLowerCase().indexOf(q) !== -1 || e.name.toLowerCase().indexOf(q) !== -1;
         }).slice(0, 8);
         if (!list.length) {
-          box.innerHTML = '<div class="suggestion"><span>Tidak ada yang cocok.</span></div>';
+          let note = 'Tidak ada yang cocok.';
+          if (input.id === 'employeeSearch' && employeesError) note = 'Daftar karyawan gagal dimuat: ' + employeesError;
+          else if (input.id === 'employeeSearch' && !employees.length) note = 'Daftar karyawan masih kosong. Periksa sheet EMPLOYEE (kolom E harus Active).';
+          box.innerHTML = '<div class="suggestion"><span>' + esc(note) + '</span></div>';
         } else {
           box.innerHTML = list.map(function (e) {
             return '<button type="button" class="suggestion" role="option" data-id="' + esc(e.id) + '">' +
@@ -997,10 +1010,13 @@
       function () { return employees; },
       function (emp) { $('employeeSearch').value = emp.name; selectEmployee(emp.id); });
 
+    let employeesError = '';
     function loadEmployees() {
+      employeesError = '';
       return api('getActiveEmployees').then(function (list) {
         employees = list || [];
       }).catch(function (err) {
+        employeesError = err.message;
         showMsg($('searchMsg'), 'error', err.message);
       });
     }

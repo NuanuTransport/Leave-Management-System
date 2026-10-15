@@ -1915,7 +1915,11 @@
               ['Diproses oleh', r.approvedBy],
               ['Waktu proses', r.approvedTime],
               [String(r.status).toUpperCase() === 'CANCELLED' ? 'Catatan' : 'Alasan ditolak', r.rejectReason],
-              ['Alasan pembatalan', r.cancelReason]
+              ['Alasan pembatalan', r.cancelReason],
+              ['Surat dokter asli', r.requestType === 'SICK' && String(r.status).toUpperCase() === 'APPROVED'
+                ? (r.dcStatus ? 'Sudah diterima HR' : 'Belum diserahkan ke HR' + (r.dcDue ? ' (paling lambat ' + fmtDate(r.dcDue) + ')' : ''))
+                : ''],
+              ['Catatan HR', /^DIKONVERSI/i.test(r.dcStatus || '') ? r.dcStatus : '']
             ], cancelActions(r.requestId, r.status, r.cancelRequest, { firstDate: r.startDate })) });
         });
       }

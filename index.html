@@ -434,6 +434,18 @@
     .pill.rejected { background: var(--red-soft); color: #7E2A1C; }
     .pill.neutral { background: var(--blue-soft); color: #1E4562; }
 
+    .item-actions {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #EEF1EC;
+    }
+    .item-actions .btn { min-height: 42px; padding: 10px 14px; font-size: 14px; }
+    .btn-line { background: var(--paper); border: 1px solid var(--line); color: var(--red); }
+    .btn-line:hover:not(:disabled) { background: var(--red-soft); }
+    .item-note { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+    .item-actions textarea { min-height: 80px; margin-bottom: 8px; }
+    .item-actions .row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
     .empty {
       padding: 28px 18px;
       text-align: center;
@@ -934,7 +946,8 @@
       WAITING_PARTNER: ['Menunggu rekan', 'pending'],
       PENDING_MANAGER: ['Menunggu manager', 'pending'],
       SWAPPED: ['Sudah ditukar', 'approved'],
-      CANCELLED: ['Dibatalkan', 'neutral']
+      CANCELLED: ['Dibatalkan', 'neutral'],
+      CANCEL_PENDING: ['Menunggu pembatalan', 'pending']
     };
     function pill(status) {
       const s = STATUS[String(status || '').toUpperCase()] || [status || '-', 'neutral'];
@@ -1447,6 +1460,66 @@
     }
     $('reloadHistory').addEventListener('click', loadHistory);
 
+    function afterCancelChange(text) {
+      toast(text);
+      leaveHistory = null;
+      loadBalance();
+      loadCTBalance();
+      loadHistory();
+    }
+
+    $('historyList').addEventListener('click', function (ev) {
+      // Tarik pengajuan (dua kali tekan)
+      const w = ev.target.closest('[data-withdraw]');
+      if (w) {
+        if (w.dataset.armed !== '1') {
+          w.dataset.armed = '1';
+          w.textContent = 'Tekan sekali lagi untuk menarik';
+          return;
+        }
+        busy(w, true, 'Menarik…');
+        api('withdrawRequest', current.id, w.dataset.withdraw).then(function () {
+          afterCancelChange('Pengajuan ' + w.dataset.withdraw + ' sudah ditarik.');
+        }).catch(function (err) {
+          busy(w, false); w.dataset.armed = ''; w.textContent = 'Tarik pengajuan';
+          toast(err.message);
+        });
+        return;
+      }
+
+      // Buka form alasan pembatalan
+      const a = ev.target.closest('[data-askcancel]');
+      if (a) {
+        const box = a.closest('.item-actions');
+        const id = a.dataset.askcancel;
+        box.innerHTML =
+          '<label for="cr-' + esc(id) + '">Alasan pembatalan</label>' +
+          '<textarea id="cr-' + esc(id) + '" placeholder="Contoh: acara keluarga dibatalkan"></textarea>' +
+          '<div class="row-btns">' +
+          '<button class="btn btn-ok" type="button" data-sendcancel="' + esc(id) + '">Kirim permintaan</button>' +
+          '<button class="btn btn-ghost" type="button" data-closecancel="1">Batal</button></div>';
+        box.querySelector('textarea').focus();
+        return;
+      }
+
+      if (ev.target.closest('[data-closecancel]')) { renderHistory(); return; }
+
+      // Kirim permintaan pembatalan
+      const s = ev.target.closest('[data-sendcancel]');
+      if (s) {
+        const box = s.closest('.item-actions');
+        const reason = box.querySelector('textarea').value.trim();
+        if (!reason) { toast('Tulis alasan pembatalan.'); return; }
+        busy(s, true, 'Mengirim…');
+        api('requestCancellation', current.id, s.dataset.sendcancel, reason).then(function () {
+          afterCancelChange('Permintaan pembatalan terkirim. Menunggu persetujuan manager/SPV.');
+        }).catch(function (err) {
+          busy(s, false);
+          toast(err.message);
+        });
+      }
+    });
+
     document.querySelectorAll('[data-filter]').forEach(function (chip) {
       chip.addEventListener('click', function () {
         historyFilter = chip.dataset.filter;
@@ -1457,13 +1530,38 @@
       });
     });
 
-    function item(title, sub, status, rows) {
+    function item(title, sub, status, rows, actions) {
       const dl = rows.filter(function (r) { return r[1] !== '' && r[1] !== null && r[1] !== undefined; })
         .map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + (r[2] ? r[1] : esc(r[1])) + '</dd>'; }).join('');
       return '<details class="item"><summary>' +
         '<span class="item-title">' + esc(title) + '</span>' + pill(status) +
         '<span class="item-sub">' + esc(sub) + '</span>' +
-        '</summary><div class="item-body"><dl>' + dl + '</dl></div></details>';
+        '</summary><div class="item-body"><dl>' + dl + '</dl>' + (actions || '') + '</div></details>';
+    }
+
+    // Tombol tarik / minta pembatalan untuk cuti dan CT
+    function cancelActions(id, status, cancelRequest) {
+      const s = String(status || '').toUpperCase();
+      const c = String(cancelRequest || '').toUpperCase();
+      if (s === 'PENDING') {
+        return '<div class="item-actions" data-id="' + esc(id) + '">' +
+          '<p class="item-note">Belum diproses. Kamu bisa menarik pengajuan ini.</p>' +
+          '<button class="btn btn-line" type="button" data-withdraw="' + esc(id) + '">Tarik pengajuan</button></div>';
+      }
+      if (s === 'APPROVED' && c === 'PENDING') {
+        return '<div class="item-actions"><p class="item-note">Permintaan pembatalan sudah dikirim dan menunggu persetujuan manager/SPV.</p></div>';
+      }
+      if (s === 'APPROVED') {
+        return '<div class="item-actions" data-id="' + esc(id) + '">' +
+          (c === 'REJECTED' ? '<p class="item-note">Permintaan pembatalan sebelumnya ditolak.</p>' : '') +
+          '<button class="btn btn-line" type="button" data-askcancel="' + esc(id) + '">Minta pembatalan</button></div>';
+      }
+      return '';
+    }
+
+    function shownStatus(status, cancelRequest) {
+      return String(status).toUpperCase() === 'APPROVED' && String(cancelRequest || '').toUpperCase() === 'PENDING'
+        ? 'CANCEL_PENDING' : status;
     }
 
     function renderHistory() {
@@ -1477,23 +1575,25 @@
           const days = dayCount(r.startDate, r.endDate);
           out.push({ key: r.startDate, html: item(title,
             fmtDate(r.startDate) + (r.endDate && r.endDate !== r.startDate ? ' – ' + fmtDate(r.endDate) : '') + ' · ' + days + ' hari',
-            r.status, [
+            shownStatus(r.status, r.cancelRequest), [
               ['ID', r.requestId],
               ['Diajukan', r.timestamp],
               ['Alasan', r.reason],
               ['Surat dokter', r.medicalCertificate ? '<a href="' + esc(r.medicalCertificate) + '" target="_blank" rel="noopener">Lihat file</a>' : '', true],
               ['Diproses oleh', r.approvedBy],
               ['Waktu proses', r.approvedTime],
-              [String(r.status).toUpperCase() === 'CANCELLED' ? 'Catatan' : 'Alasan ditolak', r.rejectReason]
-            ]) });
+              [String(r.status).toUpperCase() === 'CANCELLED' ? 'Catatan' : 'Alasan ditolak', r.rejectReason],
+              ['Alasan pembatalan', r.cancelReason]
+            ], cancelActions(r.requestId, r.status, r.cancelRequest)) });
         });
       }
       if (featureData && (f === 'all' || f === 'ct')) {
         featureData.ct.forEach(function (r) {
           out.push({ key: r.date, html: item('Klaim CT',
-            fmtDate(r.date) + ' · ' + r.hours + ' jam · ' + (CT_TIMING[r.timing] || r.timing), r.status, [
-              ['ID', r.id], ['Keterangan', r.reason], ['Diproses oleh', r.approver], ['Waktu proses', r.processed]
-            ]) });
+            fmtDate(r.date) + ' · ' + r.hours + ' jam · ' + (CT_TIMING[r.timing] || r.timing), shownStatus(r.status, r.cancelRequest), [
+              ['ID', r.id], ['Keterangan', r.reason], ['Diproses oleh', r.approver], ['Waktu proses', r.processed],
+              ['Alasan pembatalan', r.cancelReason]
+            ], cancelActions(r.id, r.status, r.cancelRequest)) });
         });
       }
       if (featureData && (f === 'all' || f === 'swap')) {

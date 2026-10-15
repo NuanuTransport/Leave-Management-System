@@ -820,22 +820,43 @@
     // ---------- Panggil Apps Script ----------
     function api(fn) {
       const args = Array.prototype.slice.call(arguments, 1);
-      return fetch(API_URL, {
+      const url = String(API_URL || '').trim();
+
+      // Cek alamat API sebelum memanggil server
+      if (!url || url.indexOf('TEMPEL_URL') !== -1) {
+        return Promise.reject(new Error('API_URL di index.html belum diisi. Ganti TEMPEL_URL_EXEC_DI_SINI dengan URL /exec dari Apps Script.'));
+      }
+      if (/\/dev(\?|$)/.test(url)) {
+        return Promise.reject(new Error('API_URL memakai alamat /dev (mode tes). Pakai URL yang berakhiran /exec dari Deploy → Manage deployments.'));
+      }
+      if (!/^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[^/]+\/exec$/.test(url)) {
+        return Promise.reject(new Error('API_URL tidak valid: harus diawali https://script.google.com/macros/s/ dan berakhiran /exec, tanpa spasi. Sekarang: ' + url));
+      }
+
+      return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ fn: fn, args: args })
       })
         .catch(function () {
-          throw new Error('Tidak bisa terhubung ke server. Periksa internet lalu coba lagi.');
+          throw new Error('Tidak bisa terhubung ke server. Biasanya karena deployment Apps Script belum "Who has access: Anyone", atau internet terputus.');
         })
         .then(function (r) {
           return r.text().then(function (txt) {
             try { return JSON.parse(txt); }
             catch (e) {
-              if (/accounts\.google\.com|ServiceLogin|Sign in/i.test(txt)) {
-                throw new Error('Server meminta login Google. Set deployment Apps Script ke "Who has access: Anyone".');
+              const plain = txt.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, ' ')
+                .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+              if (/accounts\.google\.com|ServiceLogin|Sign in|Masuk/i.test(txt)) {
+                throw new Error('Server meminta login Google. Ubah deployment Apps Script ke "Who has access: Anyone", lalu deploy New version.');
               }
-              throw new Error('Server belum memakai kode terbaru. Di Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.');
+              if (/doPost/i.test(plain)) {
+                throw new Error('Deployment Apps Script belum memakai kode terbaru (fungsi doPost tidak ada). Deploy → Manage deployments → ✏️ → Version: New version → Deploy.');
+              }
+              if (r.status === 404 || /page not found|404/i.test(plain)) {
+                throw new Error('Alamat API_URL tidak ditemukan (404). Salin ulang URL /exec dari Deploy → Manage deployments.');
+              }
+              throw new Error('Jawaban server tidak dikenali (status ' + r.status + '): ' + plain.slice(0, 160));
             }
           });
         })

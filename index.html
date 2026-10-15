@@ -933,7 +933,8 @@
       OPEN: ['Berjalan', 'neutral'],
       WAITING_PARTNER: ['Menunggu rekan', 'pending'],
       PENDING_MANAGER: ['Menunggu manager', 'pending'],
-      SWAPPED: ['Sudah ditukar', 'approved']
+      SWAPPED: ['Sudah ditukar', 'approved'],
+      CANCELLED: ['Dibatalkan', 'neutral']
     };
     function pill(status) {
       const s = STATUS[String(status || '').toUpperCase()] || [status || '-', 'neutral'];
@@ -1481,7 +1482,7 @@
               ['Surat dokter', r.medicalCertificate ? '<a href="' + esc(r.medicalCertificate) + '" target="_blank" rel="noopener">Lihat file</a>' : '', true],
               ['Diproses oleh', r.approvedBy],
               ['Waktu proses', r.approvedTime],
-              ['Alasan ditolak', r.rejectReason]
+              [String(r.status).toUpperCase() === 'CANCELLED' ? 'Catatan' : 'Alasan ditolak', r.rejectReason]
             ]) });
         });
       }

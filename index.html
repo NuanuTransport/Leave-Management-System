@@ -1384,11 +1384,32 @@
           'Shift dia: ' + esc(fmtDate(s.date1)) + ' ↔ shift kamu: ' + esc(fmtDate(s.date2)) + '<br>' +
           '<span style="color:var(--muted)">' + esc(s.note || '') + '</span>' +
           '<button class="btn btn-ok" style="width:100%;margin-top:10px" type="button" data-confirm-swap="' + esc(s.id) + '">Setujui tukar shift</button>' +
+          '<button class="btn btn-line" style="width:100%;margin-top:8px" type="button" data-decline-swap="' + esc(s.id) + '">Tolak</button>' +
           '</div>';
       }).join('');
     }
 
     $('swapPendingList').addEventListener('click', function (ev) {
+      const d = ev.target.closest('[data-decline-swap]');
+      if (d) {
+        if (d.dataset.armed !== '1') {
+          d.dataset.armed = '1';
+          d.textContent = 'Tekan sekali lagi untuk menolak';
+          return;
+        }
+        busy(d, true, 'Menolak…');
+        api('declineShiftSwap', current.id, d.dataset.declineSwap).then(function () {
+          return loadFeatureData().then(function () {
+            renderSwapPending();
+            showMsg($('swapMsg'), 'success', 'Permintaan tukar shift sudah ditolak.');
+            leaveHistory = null;
+          });
+        }).catch(function (err) {
+          busy(d, false); d.dataset.armed = ''; d.textContent = 'Tolak';
+          showMsg($('swapMsg'), 'error', err.message);
+        });
+        return;
+      }
       const b = ev.target.closest('[data-confirm-swap]');
       if (!b) return;
       if (b.dataset.armed !== '1') {
@@ -1540,18 +1561,27 @@
     }
 
     // Tombol tarik / minta pembatalan untuk cuti dan CT
-    function cancelActions(id, status, cancelRequest) {
+    function cancelActions(id, status, cancelRequest, opts) {
+      opts = opts || {};
       const s = String(status || '').toUpperCase();
       const c = String(cancelRequest || '').toUpperCase();
-      if (s === 'PENDING') {
+      if (opts.partnerWaiting) {
+        return '<div class="item-actions"><p class="item-note">Rekan meminta tukar shift dengan kamu. Setujui atau tolak lewat menu Tukar shift di tab Data Karyawan.</p></div>';
+      }
+      if (s === 'PENDING' || (s === 'WAITING_PARTNER' && opts.canWithdraw)) {
         return '<div class="item-actions" data-id="' + esc(id) + '">' +
           '<p class="item-note">Belum diproses. Kamu bisa menarik pengajuan ini.</p>' +
           '<button class="btn btn-line" type="button" data-withdraw="' + esc(id) + '">Tarik pengajuan</button></div>';
       }
-      if (s === 'APPROVED' && c === 'PENDING') {
+      const done = s === 'APPROVED' || s === 'SWAPPED';
+      if (done && c === 'PENDING') {
         return '<div class="item-actions"><p class="item-note">Permintaan pembatalan sudah dikirim dan menunggu persetujuan manager/SPV.</p></div>';
       }
-      if (s === 'APPROVED') {
+      // Tombol hilang jika tanggal pengajuan sudah dimulai atau lewat
+      if (done && opts.firstDate && String(opts.firstDate) <= todayIso()) {
+        return '';
+      }
+      if (done) {
         return '<div class="item-actions" data-id="' + esc(id) + '">' +
           (c === 'REJECTED' ? '<p class="item-note">Permintaan pembatalan sebelumnya ditolak.</p>' : '') +
           '<button class="btn btn-line" type="button" data-askcancel="' + esc(id) + '">Minta pembatalan</button></div>';
@@ -1560,7 +1590,8 @@
     }
 
     function shownStatus(status, cancelRequest) {
-      return String(status).toUpperCase() === 'APPROVED' && String(cancelRequest || '').toUpperCase() === 'PENDING'
+      const s = String(status).toUpperCase();
+      return (s === 'APPROVED' || s === 'SWAPPED') && String(cancelRequest || '').toUpperCase() === 'PENDING'
         ? 'CANCEL_PENDING' : status;
     }
 
@@ -1584,7 +1615,7 @@
               ['Waktu proses', r.approvedTime],
               [String(r.status).toUpperCase() === 'CANCELLED' ? 'Catatan' : 'Alasan ditolak', r.rejectReason],
               ['Alasan pembatalan', r.cancelReason]
-            ], cancelActions(r.requestId, r.status, r.cancelRequest)) });
+            ], cancelActions(r.requestId, r.status, r.cancelRequest, { firstDate: r.startDate })) });
         });
       }
       if (featureData && (f === 'all' || f === 'ct')) {
@@ -1593,17 +1624,24 @@
             fmtDate(r.date) + ' · ' + r.hours + ' jam · ' + (CT_TIMING[r.timing] || r.timing), shownStatus(r.status, r.cancelRequest), [
               ['ID', r.id], ['Keterangan', r.reason], ['Diproses oleh', r.approver], ['Waktu proses', r.processed],
               ['Alasan pembatalan', r.cancelReason]
-            ], cancelActions(r.id, r.status, r.cancelRequest)) });
+            ], cancelActions(r.id, r.status, r.cancelRequest, { firstDate: r.date })) });
         });
       }
       if (featureData && (f === 'all' || f === 'swap')) {
         featureData.swaps.forEach(function (r) {
           const mine = String(r.requesterId) === String(current.id);
           out.push({ key: r.date1, html: item('Tukar shift',
-            (mine ? 'Dengan ' + r.partner : 'Dari ' + r.requester) + ' · ' + fmtDate(r.date1) + ' ↔ ' + fmtDate(r.date2), r.status, [
+            (mine ? 'Dengan ' + r.partner : 'Dari ' + r.requester) + ' · ' + fmtDate(r.date1) + ' ↔ ' + fmtDate(r.date2),
+            shownStatus(r.status, r.cancelRequest), [
               ['ID', r.id], ['Pengaju', r.requester + ' (' + r.requesterId + ')'], ['Rekan', r.partner + ' (' + r.partnerId + ')'],
-              ['Keterangan', r.note]
-            ]) });
+              ['Keterangan', r.note],
+              ['Catatan', /^(CANCELLED|REJECTED)$/i.test(String(r.status)) ? r.approver : ''],
+              ['Alasan pembatalan', r.cancelReason]
+            ], cancelActions(r.id, r.status, r.cancelRequest, {
+              firstDate: [r.date1, r.date2].filter(Boolean).sort()[0],
+              canWithdraw: mine,
+              partnerWaiting: !mine && String(r.status).toUpperCase() === 'WAITING_PARTNER'
+            })) });
         });
       }
 

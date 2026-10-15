@@ -573,6 +573,27 @@
     }
     .toast[hidden] { display: none; }
 
+    /* ---------- Admin ---------- */
+    .admin-link {
+      flex: none; border: 1px solid var(--line); background: var(--paper); color: var(--muted);
+      border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; min-height: 34px;
+    }
+    .admin-link[aria-pressed="true"] { background: var(--canopy); color: #fff; border-color: var(--canopy); }
+    .card { background: var(--paper); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+    .card h2 { margin: 0 0 4px; font-size: 18px; }
+    .card > p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .admin-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--muted); }
+    .admin-bar strong { color: var(--ink); }
+    .ct-mini { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--fern-soft); color: var(--canopy); font-size: 14px; }
+    .ct-mini[hidden] { display: none; }
+    .ot-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid #EEF1EC; font-size: 14px; }
+    .ot-row:last-child { border-bottom: 0; }
+    .ot-row .ot-h { font-weight: 800; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+    .ot-row .ot-meta { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
+    .ot-row.cancelled { opacity: .55; }
+    .ot-row.cancelled .ot-h { text-decoration: line-through; }
+    .ot-row .btn { grid-column: 1 / -1; justify-self: start; min-height: 36px; padding: 6px 12px; font-size: 13px; }
+
     @media (max-width: 380px) {
       .bal-num { font-size: 28px; }
       .row-2 { grid-template-columns: 1fr; }
@@ -588,6 +609,7 @@
         <h1>Cuti &amp; Izin</h1>
         <p>Pengajuan cuti, sakit, CT, dan tukar shift karyawan Nuanu</p>
       </div>
+      <button class="admin-link" type="button" id="adminOpen" aria-pressed="false">🔒 Admin</button>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Menu utama">
@@ -712,6 +734,60 @@
         </div>
 
         <div id="historyList"><div class="loading">Mengambil riwayat…</div></div>
+      </div>
+    </section>
+
+    <!-- ================= ADMIN: INPUT LEMBUR ================= -->
+    <section class="panel" id="panel-admin" hidden>
+      <div class="card" id="adminLoginCard">
+        <h2>Masuk admin</h2>
+        <p>Khusus admin/HR untuk input lembur karyawan. Lembur yang diinput langsung menambah saldo CT.</p>
+        <label for="adminName">Nama admin</label>
+        <input type="text" id="adminName" autocomplete="name" placeholder="Contoh: Dimas">
+        <label for="adminPass">Password admin</label>
+        <input type="password" id="adminPass" autocomplete="current-password">
+        <button class="btn btn-primary" type="button" id="adminLoginBtn">Masuk</button>
+        <div class="msg" id="adminLoginMsg"></div>
+      </div>
+
+      <div id="adminArea" hidden>
+        <div class="admin-bar">
+          <span>Masuk sebagai <strong id="adminWho"></strong></span>
+          <button class="btn btn-ghost" type="button" id="adminLogoutBtn">Keluar</button>
+        </div>
+
+        <div class="card">
+          <h2>Input lembur</h2>
+          <p>Pilih karyawan, isi tanggal dan jumlah jam lembur.</p>
+          <label for="otEmpSearch">Karyawan</label>
+          <div class="picker">
+            <input type="text" id="otEmpSearch" autocomplete="off" placeholder="Ketik nama atau ID">
+            <div class="suggestions" id="otEmpSuggestions" role="listbox" hidden></div>
+          </div>
+          <div class="ct-mini" id="otEmpInfo" hidden></div>
+          <div class="row-2">
+            <div>
+              <label for="otDate">Tanggal lembur</label>
+              <input type="date" id="otDate">
+            </div>
+            <div>
+              <label for="otHours">Jumlah jam</label>
+              <input type="number" id="otHours" min="0.5" max="24" step="0.5" inputmode="decimal" placeholder="Contoh: 4">
+            </div>
+          </div>
+          <label for="otNote">Keterangan</label>
+          <input type="text" id="otNote" maxlength="300" placeholder="Contoh: antar tamu event malam">
+          <button class="btn btn-primary" type="button" id="otSave">Simpan lembur</button>
+          <div class="msg" id="otMsg"></div>
+        </div>
+
+        <div class="card">
+          <div class="hist-head" style="margin-bottom:4px">
+            <h2 id="otListTitle">Lembur terakhir</h2>
+            <button class="btn btn-ghost" type="button" id="otReload">Muat ulang</button>
+          </div>
+          <div id="otList"><div class="loading">Mengambil data…</div></div>
+        </div>
       </div>
     </section>
   </main>
@@ -943,7 +1019,7 @@
 
       // Cek alamat API sebelum memanggil server
       if (!url || url.indexOf('TEMPEL_URL') !== -1) {
-        return Promise.reject(new Error('API_URL di index.html belum diisi. Ganti TEMPEL_URL_EXEC_DI_SINI dengan URL /exec dari Apps Script.'));
+        return Promise.reject(new Error('API_URL di index.html belum diisi. Ganti https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec dengan URL /exec dari Apps Script.'));
       }
       if (/\/dev(\?|$)/.test(url)) {
         return Promise.reject(new Error('API_URL memakai alamat /dev (mode tes). Pakai URL yang berakhiran /exec dari Deploy → Manage deployments.'));
@@ -1085,12 +1161,14 @@
 
     // ---------- Tabs ----------
     function setTab(name) {
-      const isData = name === 'data';
-      $('tab-data').setAttribute('aria-selected', String(isData));
-      $('tab-history').setAttribute('aria-selected', String(!isData));
-      $('panel-data').hidden = !isData;
-      $('panel-history').hidden = isData;
-      if (!isData) renderHistoryShell();
+      $('tab-data').setAttribute('aria-selected', String(name === 'data'));
+      $('tab-history').setAttribute('aria-selected', String(name === 'history'));
+      $('panel-data').hidden = name !== 'data';
+      $('panel-history').hidden = name !== 'history';
+      $('panel-admin').hidden = name !== 'admin';
+      $('adminOpen').setAttribute('aria-pressed', String(name === 'admin'));
+      if (name === 'history') renderHistoryShell();
+      if (name === 'admin') showAdmin();
     }
     $('tab-data').addEventListener('click', function () { setTab('data'); });
     $('tab-history').addEventListener('click', function () { setTab('history'); });
@@ -1957,6 +2035,153 @@
       out.sort(function (a, b) { return String(b.key || '').localeCompare(String(a.key || '')); });
       $('historyList').innerHTML = '<div class="hist-list">' + out.map(function (o) { return o.html; }).join('') + '</div>';
     }
+
+    // ---------- Admin: input lembur ----------
+    const ADMIN_KEY = 'nuanu_leave_admin';
+    let admin = null; // { token, name }
+    let otEmp = null;
+    try { admin = JSON.parse(sessionStorage.getItem(ADMIN_KEY) || 'null'); } catch (e) { admin = null; }
+    function saveAdmin() {
+      try { if (admin) sessionStorage.setItem(ADMIN_KEY, JSON.stringify(admin)); else sessionStorage.removeItem(ADMIN_KEY); } catch (e) {}
+    }
+    function adminApi(fn) {
+      const args = Array.prototype.slice.call(arguments, 1);
+      return api.apply(null, [fn, admin ? admin.token : ''].concat(args)).catch(function (err) {
+        if (String(err.message).indexOf('ADMIN_EXPIRED') === 0) {
+          admin = null; saveAdmin(); showAdmin();
+          showMsg($('adminLoginMsg'), 'error', 'Sesi admin berakhir. Silakan masuk lagi.');
+          throw new Error('Sesi admin berakhir. Silakan masuk lagi.');
+        }
+        throw err;
+      });
+    }
+    function showAdmin() {
+      const on = !!admin;
+      $('adminLoginCard').hidden = on;
+      $('adminArea').hidden = !on;
+      if (on) {
+        $('adminWho').textContent = admin.name;
+        if (!$('otDate').value) $('otDate').value = todayIso();
+        $('otDate').max = todayIso();
+        loadOtList();
+      }
+    }
+    $('adminOpen').addEventListener('click', function () {
+      setTab($('panel-admin').hidden ? 'admin' : 'data');
+    });
+    $('adminLoginBtn').addEventListener('click', function () {
+      const btn = this;
+      clearMsg($('adminLoginMsg'));
+      const name = $('adminName').value.trim();
+      const pass = $('adminPass').value;
+      if (!name || !pass) { showMsg($('adminLoginMsg'), 'error', 'Isi nama dan password admin.'); return; }
+      busy(btn, true, 'Memeriksa…');
+      api('adminLogin', name, pass).then(function (res) {
+        admin = res; saveAdmin();
+        $('adminPass').value = '';
+        showAdmin();
+      }).catch(function (err) {
+        showMsg($('adminLoginMsg'), 'error', err.message);
+      }).then(function () { busy(btn, false); });
+    });
+    $('adminPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('adminLoginBtn').click(); });
+    $('adminLogoutBtn').addEventListener('click', function () {
+      const t = admin && admin.token;
+      admin = null; saveAdmin(); showAdmin();
+      if (t) api('adminLogout', t).catch(function () {});
+    });
+
+    function showOtEmpBalance() {
+      const box = $('otEmpInfo');
+      if (!otEmp) { box.hidden = true; return; }
+      box.hidden = false;
+      box.textContent = otEmp.name + ' (' + otEmp.id + ') · mengambil saldo CT…';
+      const pick = otEmp;
+      api('getCTBalance', pick.id).then(function (b) {
+        if (otEmp !== pick) return;
+        box.innerHTML = '<strong>' + esc(pick.name) + '</strong> (' + esc(pick.id) + ')<br>Lembur: ' + b.overtimeHours +
+          ' jam · CT terpakai: ' + b.ctApprovedHours + ' jam' + (b.ctPendingHours ? ' · CT menunggu: ' + b.ctPendingHours + ' jam' : '') +
+          '<br><strong>Saldo CT: ' + b.availableHours + ' jam</strong>';
+      }).catch(function () {
+        if (otEmp === pick) box.textContent = pick.name + ' (' + pick.id + ')';
+      });
+    }
+    attachPicker($('otEmpSearch'), $('otEmpSuggestions'),
+      function () { return employees; },
+      function (emp) {
+        otEmp = emp;
+        $('otEmpSearch').value = emp.name + ' (' + emp.id + ')';
+        showOtEmpBalance();
+        loadOtList();
+      });
+    $('otEmpSearch').addEventListener('input', function () {
+      if (otEmp) { otEmp = null; showOtEmpBalance(); loadOtList(); }
+    });
+
+    $('otSave').addEventListener('click', function () {
+      const btn = this, m = $('otMsg');
+      clearMsg(m);
+      const hours = Number(String($('otHours').value).replace(',', '.'));
+      const date = $('otDate').value;
+      if (!otEmp) { showMsg(m, 'error', 'Pilih karyawan dari daftar.'); return; }
+      if (!date) { showMsg(m, 'error', 'Isi tanggal lembur.'); return; }
+      if (date > todayIso()) { showMsg(m, 'error', 'Tanggal lembur tidak boleh di masa depan.'); return; }
+      if (!isFinite(hours) || hours <= 0 || hours > 24) { showMsg(m, 'error', 'Jumlah jam harus antara 0,5 sampai 24.'); return; }
+      busy(btn, true, 'Menyimpan…');
+      adminApi('adminAddOvertime', { employeeId: otEmp.id, date: date, hours: hours, note: $('otNote').value.trim() })
+        .then(function (res) {
+          showMsg(m, 'success', 'Tersimpan: ' + res.name + ' +' + res.hours + ' jam. Saldo CT sekarang ' + res.balance.availableHours + ' jam.');
+          $('otHours').value = '';
+          $('otNote').value = '';
+          showOtEmpBalance();
+          loadOtList();
+        })
+        .catch(function (err) { showMsg(m, 'error', err.message); })
+        .then(function () { busy(btn, false); });
+    });
+
+    function loadOtList() {
+      if (!admin) return;
+      const list = $('otList');
+      $('otListTitle').textContent = otEmp ? 'Lembur ' + otEmp.name : 'Lembur terakhir';
+      list.innerHTML = '<div class="loading">Mengambil data…</div>';
+      adminApi('adminOvertimeList', otEmp ? otEmp.id : '', 30).then(function (rows) {
+        if (!rows.length) { list.innerHTML = '<div class="empty">Belum ada data lembur.</div>'; return; }
+        list.innerHTML = rows.map(function (r) {
+          const cancelled = r.status !== 'APPROVED';
+          return '<div class="ot-row' + (cancelled ? ' cancelled' : '') + '">' +
+            '<div><strong>' + esc(r.name) + '</strong> · ' + esc(fmtDate(r.date)) + '</div>' +
+            '<div class="ot-h">' + esc(r.hours) + ' jam</div>' +
+            '<div class="ot-meta">' + (r.note ? esc(r.note) + ' · ' : '') + 'oleh ' + esc(r.by || '-') +
+              (/telegram/i.test(r.source) ? ' (Telegram)' : /web/i.test(r.source) ? ' (Web)' : '') +
+              (cancelled ? ' · <strong>' + esc(r.status === 'CANCELLED' ? 'Dibatalkan' : r.status) + '</strong>' : '') + '</div>' +
+            (cancelled ? '' : '<button class="btn btn-line" type="button" data-ot-cancel="' + esc(r.id) + '">Batalkan</button>') +
+            '</div>';
+        }).join('');
+      }).catch(function (err) {
+        list.innerHTML = '<div class="empty">' + esc(err.message) + '</div>';
+      });
+    }
+    $('otReload').addEventListener('click', loadOtList);
+    $('otList').addEventListener('click', function (ev) {
+      const b = ev.target.closest('[data-ot-cancel]');
+      if (!b) return;
+      if (b.dataset.confirm !== '1') {
+        b.dataset.confirm = '1';
+        b.textContent = 'Yakin? Ketuk lagi untuk membatalkan';
+        setTimeout(function () { if (b.isConnected && b.dataset.confirm === '1') { b.dataset.confirm = ''; b.textContent = 'Batalkan'; } }, 5000);
+        return;
+      }
+      busy(b, true, 'Membatalkan…');
+      adminApi('adminCancelOvertime', b.dataset.otCancel).then(function (res) {
+        toast('Lembur dibatalkan. Saldo CT sekarang ' + res.balance.availableHours + ' jam.' + (res.warning ? ' ⚠️ ' + res.warning : ''));
+        showOtEmpBalance();
+        loadOtList();
+      }).catch(function (err) {
+        busy(b, false);
+        toast(err.message);
+      });
+    });
 
     // ---------- Mulai ----------
     loadEmployees().then(function () {

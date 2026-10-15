@@ -950,9 +950,11 @@
     let swapPartner = null;
 
     const STORE_KEY = 'nuanu_leave_employee';
-    function remember(id) { try { localStorage.setItem(STORE_KEY, id); } catch (e) {} }
+    // Tidak lagi mengingat karyawan terakhir (perangkat bisa dipakai bersama).
+    function remember(id) {}
     function forget() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} }
-    function recalled() { try { return localStorage.getItem(STORE_KEY); } catch (e) { return null; } }
+    function recalled() { return null; }
+    forget(); // hapus data lama dari versi sebelumnya
 
     // ---------- Tabs ----------
     function setTab(name) {

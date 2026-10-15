@@ -162,7 +162,7 @@
       color: var(--muted);
       margin-top: 6px;
     }
-    input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    input[type="text"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
       width: 100%;
       min-height: 48px;
       padding: 12px 14px;
@@ -599,12 +599,23 @@
     <section class="panel" id="panel-data" role="tabpanel" aria-labelledby="tab-data">
 
       <div class="search-box" id="searchBox">
+        <div id="searchStep">
         <h2>Siapa yang mengajukan?</h2>
         <p>Ketik nama atau ID karyawan, lalu pilih dari daftar.</p>
         <div class="picker">
           <input type="text" id="employeeSearch" autocomplete="off" placeholder="Contoh: Budi atau NU0123"
                  aria-label="Cari nama atau ID karyawan" aria-controls="employeeSuggestions">
           <div class="suggestions" id="employeeSuggestions" role="listbox" hidden></div>
+        </div>
+        </div>
+
+        <div id="pinStep" hidden>
+          <h2 id="pinTitle">Masukkan PIN</h2>
+          <p>PIN didapat dari HR. Jangan bagikan PIN ke orang lain.</p>
+          <label for="pinInput">PIN</label>
+          <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="letter-spacing:.3em;font-size:20px">
+          <button class="btn btn-primary" type="button" id="pinSubmit">Masuk</button>
+          <button class="btn btn-ghost" type="button" id="pinBack" style="width:100%;margin-top:6px">Bukan saya, pilih nama lain</button>
         </div>
         <div class="msg" id="searchMsg"></div>
       </div>
@@ -617,7 +628,10 @@
               <h2 class="pass-name" id="pName"></h2>
               <div class="pass-meta" id="pMeta"></div>
             </div>
-            <button class="pass-change" id="changeEmployee" type="button">Ganti</button>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+              <button class="pass-change" id="changeEmployee" type="button">Ganti</button>
+              <button class="pass-change" type="button" data-open="pin" id="pinChangeBtn" hidden>Ubah PIN</button>
+            </div>
           </div>
 
           <div class="balances">
@@ -891,6 +905,26 @@
     </div>
   </dialog>
 
+  <!-- ================= UBAH PIN ================= -->
+  <dialog class="sheet" id="sheet-pin" aria-labelledby="pinChangeTitle">
+    <div class="sheet-inner">
+      <div class="sheet-head">
+        <h2 id="pinChangeTitle">Ubah PIN</h2>
+        <button class="sheet-close" type="button" data-close aria-label="Tutup">✕</button>
+      </div>
+      <p class="sheet-sub" data-who></p>
+      <label for="pinOld">PIN lama</label>
+      <input type="password" id="pinOld" inputmode="numeric" maxlength="6" autocomplete="off">
+      <label for="pinNew">PIN baru (4–6 angka)</label>
+      <input type="password" id="pinNew" inputmode="numeric" maxlength="6" autocomplete="off">
+      <label for="pinNew2">Ulangi PIN baru</label>
+      <input type="password" id="pinNew2" inputmode="numeric" maxlength="6" autocomplete="off">
+      <div class="field-hint">Hindari angka sama atau berurutan seperti 1111 atau 1234.</div>
+      <button class="btn btn-primary" type="button" id="pinChangeSubmit">Simpan PIN baru</button>
+      <div class="msg" id="pinChangeMsg"></div>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script>
@@ -900,6 +934,9 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbyOJVn1OqCvHGlajDzV2clyDxxiBbzg0V5bzEoex2vppbr7i4jlrIPsSoucBysnIVIKFw/exec';
 
     // ---------- Panggil Apps Script ----------
+    // Ubah ke true jika PIN diaktifkan (CONFIG.REQUIRE_PIN = true di Code.gs).
+    const REQUIRE_PIN = false;
+    let sessionToken = '';
     function api(fn) {
       const args = Array.prototype.slice.call(arguments, 1);
       const url = String(API_URL || '').trim();
@@ -918,7 +955,7 @@
       return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ fn: fn, args: args })
+        body: JSON.stringify({ fn: fn, args: args, token: sessionToken })
       })
         .catch(function () {
           throw new Error('Tidak bisa terhubung ke server. Biasanya karena deployment Apps Script belum "Who has access: Anyone", atau internet terputus.');
@@ -943,7 +980,14 @@
           });
         })
         .then(function (res) {
-          if (!res.ok) throw new Error(res.error || 'Terjadi kesalahan di server.');
+          if (!res.ok) {
+            const m = String(res.error || 'Terjadi kesalahan di server.');
+            if (m.indexOf('SESSION_EXPIRED') === 0) {
+              setTimeout(function () { onSessionExpired(); }, 0);
+              throw new Error(m.replace(/^SESSION_EXPIRED:\s*/, ''));
+            }
+            throw new Error(m);
+          }
           return res.result;
         });
     }
@@ -1088,7 +1132,65 @@
 
     attachPicker($('employeeSearch'), $('employeeSuggestions'),
       function () { return employees; },
-      function (emp) { $('employeeSearch').value = emp.name; selectEmployee(emp.id); });
+      function (emp) {
+        $('employeeSearch').value = emp.name;
+        if (REQUIRE_PIN) showPinStep(emp); else selectEmployee(emp.id);
+      });
+
+    let pinEmployee = null;
+    function showPinStep(emp) {
+      pinEmployee = emp;
+      clearMsg($('searchMsg'));
+      $('searchStep').hidden = true;
+      $('pinStep').hidden = false;
+      $('pinTitle').textContent = 'PIN untuk ' + emp.name;
+      $('pinInput').value = '';
+      $('pinInput').focus();
+    }
+    function showSearchStep() {
+      pinEmployee = null;
+      $('pinStep').hidden = true;
+      $('searchStep').hidden = false;
+      $('employeeSearch').value = '';
+    }
+    $('pinBack').addEventListener('click', function () { clearMsg($('searchMsg')); showSearchStep(); $('employeeSearch').focus(); });
+    function submitPin() {
+      if (!pinEmployee) return;
+      const pin = $('pinInput').value.trim();
+      if (!pin) return showMsg($('searchMsg'), 'error', 'Masukkan PIN.');
+      const btn = $('pinSubmit');
+      busy(btn, true, 'Memeriksa…');
+      api('verifyEmployeePin', pinEmployee.id, pin).then(function (res) {
+        sessionToken = res.token;
+        const id = pinEmployee.id;
+        $('pinInput').value = '';
+        showSearchStep();
+        return selectEmployee(id);
+      }).catch(function (err) {
+        showMsg($('searchMsg'), 'error', err.message);
+        $('pinInput').select();
+      }).finally(function () { busy(btn, false); });
+    }
+    $('pinSubmit').addEventListener('click', submitPin);
+    $('pinInput').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') submitPin(); });
+
+    function logout() {
+      sessionToken = '';
+      current = null;
+      leaveHistory = null; featureData = null;
+      document.querySelectorAll('dialog.sheet[open]').forEach(function (d) { closeSheet(d); });
+      $('employeeArea').hidden = true;
+      $('searchBox').hidden = false;
+      showSearchStep();
+      setTab('data');
+    }
+    function onSessionExpired() {
+      if (!current) return;
+      const emp = { id: current.id, name: current.name };
+      logout();
+      showPinStep(emp);
+      showMsg($('searchMsg'), 'info', 'Sesi berakhir. Masukkan PIN kembali.');
+    }
 
     let employeesError = '';
     function loadEmployees() {
@@ -1124,6 +1226,8 @@
     }
 
     function renderEmployee() {
+      $('pinChangeBtn').hidden = !REQUIRE_PIN;
+      $('changeEmployee').textContent = REQUIRE_PIN ? 'Keluar' : 'Ganti';
       $('searchBox').hidden = true;
       $('employeeArea').hidden = false;
       $('pId').textContent = current.id;
@@ -1135,11 +1239,7 @@
     }
 
     $('changeEmployee').addEventListener('click', function () {
-      current = null;
-      forget();
-      $('employeeArea').hidden = true;
-      $('searchBox').hidden = false;
-      $('employeeSearch').value = '';
+      logout();
       $('employeeSearch').focus();
     });
 
@@ -1209,6 +1309,10 @@
 
     // ---------- Sheet (form) ----------
     const openers = {
+      pin: function () {
+        clearMsg($('pinChangeMsg'));
+        $('pinOld').value = ''; $('pinNew').value = ''; $('pinNew2').value = '';
+      },
       leave: function () {
         clearMsg($('leaveMsg'));
         if (!$('leaveStart').value) $('leaveStart').value = todayIso();
@@ -1264,11 +1368,28 @@
       loadCTBalance();
     }
 
+    // ---------- Ubah PIN ----------
+    $('pinChangeSubmit').addEventListener('click', function () {
+      const msg = $('pinChangeMsg');
+      const o = $('pinOld').value.trim(), n = $('pinNew').value.trim(), n2 = $('pinNew2').value.trim();
+      if (!o || !n) return showMsg(msg, 'error', 'Isi PIN lama dan PIN baru.');
+      if (!/^\d{4,6}$/.test(n)) return showMsg(msg, 'error', 'PIN baru harus 4–6 angka.');
+      if (n !== n2) return showMsg(msg, 'error', 'Ulangi PIN baru dengan benar.');
+      const btn = $('pinChangeSubmit');
+      busy(btn, true, 'Menyimpan…');
+      api('changeEmployeePin', sessionToken, o, n).then(function () {
+        closeSheet($('sheet-pin'));
+        toast('PIN berhasil diubah.');
+      }).catch(function (err) {
+        showMsg(msg, 'error', err.message);
+      }).finally(function () { busy(btn, false); });
+    });
+
     // ---------- Cuti ----------
     function updateLeaveDays() {
       const n = dayCount($('leaveStart').value, $('leaveEnd').value);
       $('leaveDays').textContent = n > 0
-        ? n + ' hari' + (n > 3 ? ' — lebih dari 3 hari, hubungi Supervisor/Manager dan HR.' : '. Maksimal 3 hari berturut-turut.')
+        ? n + ' hari' + (n > 3 ? ' — lebih dari 3 hari, hubungi Supervisor/Manager dan HR.' : '. Maksimal 3 hari berturut-turut. Hari OFF di jadwal tidak memotong saldo AL/DP.')
         : 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
     }
     $('leaveStart').addEventListener('change', function () {

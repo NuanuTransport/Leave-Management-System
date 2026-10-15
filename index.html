@@ -508,6 +508,16 @@
     }
     .dc-tips ul { margin: 6px 0 0; padding-left: 18px; }
     .dc-tips li { margin: 3px 0; }
+    .dc-warning {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--amber-soft);
+      color: #6B4A12;
+      font-size: 14px;
+    }
+    .dc-warning p { margin: 4px 0 0; }
+    .dc-ack { margin-top: 10px; color: #5A3E0E; }
     .dc-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
     .dc-btn { margin: 0; font-weight: 700; font-size: 14px; cursor: pointer; text-align: center; }
     .dc-btn-alt { color: var(--canopy); }
@@ -784,6 +794,15 @@
         <button class="btn btn-ghost" type="button" id="dcRemove">Hapus dan ambil ulang</button>
       </div>
       <div class="field-hint">Foto (JPG/PNG) atau PDF, maksimal 5 MB. Foto otomatis dikecilkan.</div>
+
+      <div class="dc-warning">
+        <strong>Wajib: serahkan surat dokter asli ke tim HR</strong>
+        <p>Setelah kembali bekerja, serahkan <b>surat dokter (DC) asli</b> ke tim HR. Jika surat asli tidak diserahkan, hari sakit akan <b>dihitung sebagai AL (cuti tahunan) atau DP</b>.</p>
+        <label class="dc-check dc-ack">
+          <input type="checkbox" id="dcAck">
+          Saya mengerti dan akan menyerahkan surat dokter asli ke HR.
+        </label>
+      </div>
 
       <button class="btn btn-primary" type="button" id="sickSubmit">Kirim laporan sakit</button>
       <div class="msg" id="sickMsg"></div>
@@ -1423,6 +1442,7 @@
       if (!reason) return showMsg(msg, 'error', 'Tulis keterangan sakit.');
       if (!dcSource) return showMsg(msg, 'error', 'Lampirkan surat dokter: tekan Foto surat atau Pilih file / PDF.');
       if (!dcResult) return showMsg(msg, 'error', 'Surat dokter belum siap atau lebih dari 5 MB. Coba ambil ulang.');
+      if (!$('dcAck').checked) return showMsg(msg, 'error', 'Centang pernyataan bahwa kamu akan menyerahkan surat dokter asli ke HR.');
 
       const btn = $('sickSubmit');
       busy(btn, true, 'Mengupload…');
@@ -1435,8 +1455,9 @@
         });
       }).then(function (res) {
         $('sickReason').value = '';
+        $('dcAck').checked = false;
         dcReset();
-        afterSubmit($('sheet-sick'), 'Laporan sakit terkirim (' + res.requestId + '). Menunggu persetujuan.');
+        afterSubmit($('sheet-sick'), 'Laporan sakit terkirim (' + res.requestId + '). Jangan lupa serahkan surat dokter asli ke HR setelah kembali bekerja.');
       }).catch(function (err) {
         showMsg(msg, 'error', err.message);
       }).finally(function () { busy(btn, false); });

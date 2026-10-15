@@ -499,6 +499,32 @@
     }
     .sheet-sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
 
+    .dc-tips {
+      background: var(--blue-soft);
+      color: #1E4562;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .dc-tips ul { margin: 6px 0 0; padding-left: 18px; }
+    .dc-tips li { margin: 3px 0; }
+    .dc-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .dc-btn { margin: 0; font-weight: 700; font-size: 14px; cursor: pointer; text-align: center; }
+    .dc-btn-alt { color: var(--canopy); }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .dc-preview {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #FBFCFA;
+    }
+    .dc-preview img { display: block; width: 100%; max-height: 360px; object-fit: contain; background: #fff; border-radius: 8px; }
+    .dc-pdf { padding: 14px; background: #fff; border-radius: 8px; font-weight: 600; overflow-wrap: anywhere; }
+    .dc-check { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin: 10px 0 0; }
+    .dc-check input { width: 20px; height: 20px; min-height: 0; }
+    @media (max-width: 380px) { .dc-buttons { grid-template-columns: 1fr; } }
+
     .ot-state {
       padding: 14px;
       border-radius: 12px;
@@ -730,9 +756,34 @@
       <label for="sickReason">Keterangan</label>
       <textarea id="sickReason" placeholder="Contoh: demam, istirahat sesuai saran dokter"></textarea>
 
-      <label for="sickFile">Surat dokter</label>
-      <input type="file" id="sickFile" accept=".jpg,.jpeg,.png,.pdf">
-      <div class="field-hint">Foto atau PDF (JPG, PNG, PDF), maksimal 5 MB.</div>
+      <label>Surat dokter</label>
+      <div class="dc-tips">
+        <strong>Supaya surat dokter bisa diterima:</strong>
+        <ul>
+          <li>Foto <b>seluruh surat</b>, keempat sudut kertas terlihat, jangan terpotong.</li>
+          <li>Letakkan di permukaan datar, cahaya terang, tanpa bayangan dan tidak buram.</li>
+          <li>Nama pasien, tanggal, lama istirahat, nama dokter, cap, dan tanda tangan harus terbaca.</li>
+          <li>Bisa juga pakai fitur scan di HP (Google Drive → <i>Pindai</i>, atau iPhone Notes/Files → <i>Pindai Dokumen</i>), lalu upload PDF-nya.</li>
+        </ul>
+      </div>
+      <div class="dc-buttons">
+        <label class="btn btn-ok dc-btn" for="sickCamera">📷 Foto surat</label>
+        <label class="btn btn-line dc-btn dc-btn-alt" for="sickFile">📎 Pilih file / PDF</label>
+      </div>
+      <input type="file" id="sickCamera" accept="image/*" capture="environment" class="visually-hidden">
+      <input type="file" id="sickFile" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" class="visually-hidden">
+
+      <div class="dc-preview" id="dcPreview" hidden>
+        <img id="dcImage" alt="Pratinjau surat dokter">
+        <div class="dc-pdf" id="dcPdf" hidden></div>
+        <label class="dc-check" id="dcScanWrap">
+          <input type="checkbox" id="dcScan" checked>
+          Mode scan (kertas lebih putih, tulisan lebih jelas, tetap berwarna)
+        </label>
+        <p class="field-hint" id="dcInfo"></p>
+        <button class="btn btn-ghost" type="button" id="dcRemove">Hapus dan ambil ulang</button>
+      </div>
+      <div class="field-hint">Foto (JPG/PNG) atau PDF, maksimal 5 MB. Foto otomatis dikecilkan.</div>
 
       <button class="btn btn-primary" type="button" id="sickSubmit">Kirim laporan sakit</button>
       <div class="msg" id="sickMsg"></div>
@@ -1251,32 +1302,140 @@
       });
     }
 
+    // ---------- Surat dokter: foto / scan ----------
+    let dcSource = null;   // { type: 'image', img: HTMLImageElement, name } atau { type: 'pdf', file }
+    let dcResult = null;   // { name, mimeType, size, base64 } siap dikirim
+    const DC_MAX = 5 * 1024 * 1024;
+
+    function dcReset() {
+      dcSource = null; dcResult = null;
+      $('sickFile').value = ''; $('sickCamera').value = '';
+      $('dcPreview').hidden = true;
+      $('dcImage').removeAttribute('src');
+    }
+
+    function dcRender() {
+      if (!dcSource) return;
+      $('dcPreview').hidden = false;
+      if (dcSource.type === 'pdf') {
+        $('dcImage').hidden = true; $('dcScanWrap').hidden = true;
+        $('dcPdf').hidden = false;
+        $('dcPdf').textContent = '📄 ' + dcSource.file.name;
+        const ok = dcSource.file.size <= DC_MAX;
+        $('dcInfo').textContent = ok ? 'PDF siap dikirim (' + (dcSource.file.size / 1024 / 1024).toFixed(1) + ' MB).' : 'PDF lebih dari 5 MB. Scan ulang dengan kualitas lebih rendah.';
+        dcResult = null;
+        if (ok) {
+          readFileBase64(dcSource.file).then(function (b64) {
+            dcResult = { name: dcSource.file.name, mimeType: 'application/pdf', size: dcSource.file.size, base64: b64 };
+          });
+        }
+        return;
+      }
+      // Gambar: kecilkan, dan jika mode scan aktif, ubah jadi hitam-putih kontras tinggi
+      const img = dcSource.img;
+      const maxSide = 1800;
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.round(img.naturalWidth * scale);
+      const h = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      if ($('dcScan').checked) {
+        const data = ctx.getImageData(0, 0, w, h);
+        const px = data.data;
+        // Mode scan berwarna: kertas dibuat putih, tulisan lebih gelap,
+        // warna (cap biru, tanda tangan, logo) tetap terlihat.
+        const hist = new Array(256).fill(0);
+        for (let i = 0; i < px.length; i += 4) {
+          hist[Math.round(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2])]++;
+        }
+        const total = w * h;
+        let lo = 0, hi = 255, acc = 0;
+        for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > total * 0.02) { lo = v; break; } }
+        acc = 0;
+        for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > total * 0.35) { hi = v; break; } }
+        if (hi - lo < 30) { lo = Math.max(0, hi - 30); }
+        // Penyeimbang warna: rata-rata warna kertas (piksel paling terang) dijadikan putih netral
+        let sr = 0, sg = 0, sb = 0, n = 0;
+        for (let i = 0; i < px.length; i += 4) {
+          if (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2] >= hi) { sr += px[i]; sg += px[i + 1]; sb += px[i + 2]; n++; }
+        }
+        const avg = n ? (sr + sg + sb) / (3 * n) : 1;
+        const wr = n ? avg / (sr / n) : 1, wg = n ? avg / (sg / n) : 1, wb = n ? avg / (sb / n) : 1;
+        const k = 255 / (hi - lo);
+        for (let i = 0; i < px.length; i += 4) {
+          let r = (px[i] * wr - lo) * k, g = (px[i + 1] * wg - lo) * k, b = (px[i + 2] * wb - lo) * k;
+          // sedikit menaikkan saturasi supaya cap/tinta berwarna tidak pudar
+          const l = 0.299 * r + 0.587 * g + 0.114 * b;
+          r = l + (r - l) * 1.25; g = l + (g - l) * 1.25; b = l + (b - l) * 1.25;
+          px[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+          px[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+          px[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+        }
+        ctx.putImageData(data, 0, 0);
+      }
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const b64 = dataUrl.split(',')[1];
+      const size = Math.round(b64.length * 3 / 4);
+      $('dcImage').hidden = false; $('dcPdf').hidden = true; $('dcScanWrap').hidden = false;
+      $('dcImage').src = dataUrl;
+      dcResult = size <= DC_MAX ? { name: (dcSource.name || 'surat-dokter').replace(/\.[^.]+$/, '') + '.jpg', mimeType: 'image/jpeg', size: size, base64: b64 } : null;
+      $('dcInfo').textContent = dcResult
+        ? 'Periksa: seluruh surat terlihat dan semua tulisan terbaca. Jika belum, tekan "Hapus dan ambil ulang".'
+        : 'Foto masih terlalu besar. Coba foto ulang.';
+    }
+
+    function dcLoad(file) {
+      clearMsg($('sickMsg'));
+      if (!file) return;
+      if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+        dcSource = { type: 'pdf', file: file };
+        dcRender();
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = function () {
+        dcSource = { type: 'image', img: img, name: file.name };
+        dcRender();
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        dcReset();
+        showMsg($('sickMsg'), 'error', 'Foto tidak bisa dibuka. Gunakan format JPG/PNG atau PDF.');
+      };
+      img.src = url;
+    }
+
+    $('sickCamera').addEventListener('change', function () { dcLoad(this.files[0]); });
+    $('sickFile').addEventListener('change', function () { dcLoad(this.files[0]); });
+    $('dcScan').addEventListener('change', dcRender);
+    $('dcRemove').addEventListener('click', dcReset);
+
     $('sickSubmit').addEventListener('click', function () {
       const msg = $('sickMsg');
       const start = $('sickStart').value;
       const end = $('sickEnd').value;
       const reason = $('sickReason').value.trim();
-      const file = $('sickFile').files[0];
-      const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
       if (!start || !end) return showMsg(msg, 'error', 'Isi tanggal mulai dan selesai.');
       if (end < start) return showMsg(msg, 'error', 'Tanggal selesai tidak boleh sebelum tanggal mulai.');
       if (!reason) return showMsg(msg, 'error', 'Tulis keterangan sakit.');
-      if (!file) return showMsg(msg, 'error', 'Lampirkan surat dokter.');
-      if (allowed.indexOf(file.type) === -1) return showMsg(msg, 'error', 'Surat dokter harus JPG, PNG, atau PDF.');
-      if (file.size > 5 * 1024 * 1024) return showMsg(msg, 'error', 'Ukuran file maksimal 5 MB.');
+      if (!dcSource) return showMsg(msg, 'error', 'Lampirkan surat dokter: tekan Foto surat atau Pilih file / PDF.');
+      if (!dcResult) return showMsg(msg, 'error', 'Surat dokter belum siap atau lebih dari 5 MB. Coba ambil ulang.');
 
       const btn = $('sickSubmit');
       busy(btn, true, 'Mengupload…');
       clearMsg(msg);
-      readFileBase64(file).then(function (b64) {
+      Promise.resolve(dcResult).then(function (file) {
         return api('submitRequest', {
           employeeId: current.id, requestType: 'SICK', leaveType: 'SL',
           startDate: start, endDate: end, reason: reason,
-          file: { name: file.name, mimeType: file.type, size: file.size, base64: b64 }
+          file: file
         });
       }).then(function (res) {
         $('sickReason').value = '';
-        $('sickFile').value = '';
+        dcReset();
         afterSubmit($('sheet-sick'), 'Laporan sakit terkirim (' + res.requestId + '). Menunggu persetujuan.');
       }).catch(function (err) {
         showMsg(msg, 'error', err.message);

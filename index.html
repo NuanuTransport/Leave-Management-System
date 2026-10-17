@@ -33,6 +33,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
     body {
@@ -667,7 +668,7 @@
             </div>
             <div class="bal">
               <div class="bal-num" id="bCO">–</div>
-              <div class="bal-label">Estimasi carryover</div>
+              <div class="bal-label" id="bCOLabel">Estimasi carryover</div>
             </div>
           </div>
 
@@ -1333,7 +1334,9 @@
         const unit = '<small>hr</small>';
         $('bAL').innerHTML = b.alConfigured ? esc(numText(b.alRemaining)) + unit : '–';
         $('bDP').innerHTML = b.dpConfigured ? esc(numText(b.dpRemaining)) + unit : '–';
-        $('bCO').innerHTML = esc(numText(b.alCarryoverRemaining != null ? b.alCarryoverRemaining : 0)) + unit;
+        const coTotal = b.carryoverTotal != null ? b.carryoverTotal : (b.alCarryoverRemaining || 0);
+        $('bCO').innerHTML = esc(numText(coTotal)) + unit;
+        $('bCOLabel').textContent = b.carryoverLabel || 'Estimasi carryover';
         const rows = [
           ['Total hak AL', b.alTotalQuota != null ? b.alTotalQuota : b.alQuota],
           ['Tambahan AL', b.alAdditional],
@@ -1341,8 +1344,8 @@
           ['Quota DP', b.dpTotalQuota != null ? b.dpTotalQuota : b.dpQuota],
           ['Tambahan DP', b.dpAdditional],
           ['DP terpakai', b.dpUsed],
-          ['Carryover maksimal', b.alCarryoverInitial],
-          ['Carryover terpakai', b.alCarryoverUsed]
+          ['Carryover AL', b.carryoverAL != null ? b.carryoverAL : b.alCarryoverRemaining],
+          ['Carryover DP', b.carryoverDP != null ? b.carryoverDP : b.dpCarryoverRemaining]
         ];
         $('balTable').innerHTML = rows.map(function (r) {
           return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(numText(r[1])) + ' hari</td></tr>';

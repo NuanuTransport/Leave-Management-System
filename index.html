@@ -1700,6 +1700,13 @@
         return;
       }
       const avail = Number(ctBalance.availableHours || 0);
+      if (ctBalance.ctAllowed === false) {
+        box.className = 'ot-state running';
+        box.textContent = ctBalance.ctRule || 'Klaim CT tidak tersedia untuk posisi kamu.';
+        sub.textContent = ctBalance.ctRule || 'Tidak tersedia untuk posisi kamu';
+        btn.disabled = true;
+        return;
+      }
       if (avail <= 0) {
         box.className = 'ot-state running';
         box.textContent = Number(ctBalance.overtimeHours || 0) <= 0
@@ -2104,7 +2111,8 @@
         if (otEmp !== pick) return;
         box.innerHTML = '<strong>' + esc(pick.name) + '</strong> (' + esc(pick.id) + ')<br>Lembur: ' + b.overtimeHours +
           ' jam · CT terpakai: ' + b.ctApprovedHours + ' jam' + (b.ctPendingHours ? ' · CT menunggu: ' + b.ctPendingHours + ' jam' : '') +
-          '<br><strong>Saldo CT: ' + b.availableHours + ' jam</strong>';
+          '<br><strong>Saldo CT: ' + b.availableHours + ' jam</strong>' +
+          (b.ctAllowed === false ? '<br>Catatan: posisi ini belum bisa klaim CT. ' + esc(b.ctRule || '') + ' Lembur tetap tercatat.' : '');
       }).catch(function () {
         if (otEmp === pick) box.textContent = pick.name + ' (' + pick.id + ')';
       });

@@ -698,7 +698,7 @@
             <span class="action-text"><strong>Sakit</strong><span>Wajib melampirkan surat dokter</span></span>
             <span class="action-arrow" aria-hidden="true">›</span>
           </button>
-          <button class="action" type="button" data-open="ct">
+          <button class="action" type="button" data-open="ct" id="ctAction" hidden>
             <span class="action-icon" aria-hidden="true">🕒</span>
             <span class="action-text"><strong>Klaim CT</strong><span id="ctActionSub">Pakai jam lembur untuk masuk siang atau pulang awal</span></span>
             <span class="action-arrow" aria-hidden="true">›</span>
@@ -1693,6 +1693,8 @@
       const box = $('ctBalanceBox');
       const sub = $('ctActionSub');
       const btn = $('ctSubmit');
+      // Tombol Klaim CT hanya muncul untuk posisi yang diizinkan (dicek server).
+      $('ctAction').hidden = !ctBalance || ctBalance.ctAllowed === false;
       if (!ctBalance) {
         box.className = 'ot-state';
         box.textContent = 'Mengecek saldo lembur…';

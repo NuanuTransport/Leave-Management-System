@@ -574,6 +574,7 @@
     }
     .toast[hidden] { display: none; }
 
+    #chgInfo, #chgMoveInfo { margin-top: 10px; }
     /* ---------- Admin ---------- */
     .admin-link {
       flex: none; border: 1px solid var(--line); background: var(--paper); color: var(--muted);
@@ -708,6 +709,11 @@
             <span class="action-text"><strong>Tukar shift</strong><span>Dengan rekan di posisi yang sama</span></span>
             <span class="action-arrow" aria-hidden="true">›</span>
           </button>
+          <button class="action" type="button" data-open="change">
+            <span class="action-icon" aria-hidden="true">🗓️</span>
+            <span class="action-text"><strong>Pindah shift</strong><span>Ganti shift atau pindah hari libur kamu sendiri</span></span>
+            <span class="action-arrow" aria-hidden="true">›</span>
+          </button>
         </div>
       </div>
     </section>
@@ -732,6 +738,7 @@
           <button class="chip" type="button" data-filter="leave" aria-pressed="false">Cuti &amp; sakit</button>
           <button class="chip" type="button" data-filter="ct" aria-pressed="false">CT</button>
           <button class="chip" type="button" data-filter="swap" aria-pressed="false">Tukar shift</button>
+          <button class="chip" type="button" data-filter="change" aria-pressed="false">Pindah shift</button>
         </div>
 
         <div id="historyList"><div class="loading">Mengambil riwayat…</div></div>
@@ -979,6 +986,51 @@
 
       <button class="btn btn-primary" type="button" id="swapSubmit">Kirim permintaan tukar shift</button>
       <div class="msg" id="swapMsg"></div>
+    </div>
+  </dialog>
+
+  <!-- ================= FORM: PINDAH SHIFT SENDIRI ================= -->
+  <dialog class="sheet" id="sheet-change" aria-labelledby="chgTitle">
+    <div class="sheet-inner">
+      <div class="sheet-head">
+        <h2 id="chgTitle">Pindah shift</h2>
+        <button class="sheet-close" type="button" data-close aria-label="Tutup">✕</button>
+      </div>
+      <p class="sheet-sub" data-who></p>
+
+      <div class="chips" role="group" aria-label="Jenis perubahan">
+        <button class="chip" type="button" id="chgTypeChange" aria-pressed="true">Ganti shift</button>
+        <button class="chip" type="button" id="chgTypeMove" aria-pressed="false">Pindah hari libur</button>
+      </div>
+
+      <div id="chgChangeBox">
+        <label for="chgDate">Tanggal</label>
+        <input type="date" id="chgDate">
+        <div class="ot-state" id="chgInfo" hidden></div>
+        <label for="chgTo">Ganti ke shift</label>
+        <select id="chgTo"><option value="">Pilih tanggal dulu</option></select>
+      </div>
+
+      <div id="chgMoveBox" hidden>
+        <div class="row-2">
+          <div>
+            <label for="chgOff">Libur lama (jadi masuk)</label>
+            <input type="date" id="chgOff">
+          </div>
+          <div>
+            <label for="chgNew">Libur baru</label>
+            <input type="date" id="chgNew">
+          </div>
+        </div>
+        <div class="ot-state" id="chgMoveInfo" hidden></div>
+      </div>
+
+      <label for="chgReason">Alasan</label>
+      <textarea id="chgReason" placeholder="Contoh: kondisi lapangan sedang ramai, diminta SPV pindah ke shift sore"></textarea>
+      <div class="field-hint">Boleh untuk hari ini. Jadwal baru berubah setelah disetujui manager/SPV.</div>
+
+      <button class="btn btn-primary" type="button" id="chgSubmit">Kirim pengajuan pindah shift</button>
+      <div class="msg" id="chgMsg"></div>
     </div>
   </dialog>
 
@@ -1410,6 +1462,14 @@
         if (!$('ctDate').value) $('ctDate').value = todayIso();
         renderCTBalance();
         loadCTBalance();
+      },
+      change: function () {
+        clearMsg($('chgMsg'));
+        chgOpt = {};
+        if (!$('chgDate').value) $('chgDate').value = todayIso();
+        $('chgDate').min = todayIso(); $('chgOff').min = todayIso(); $('chgNew').min = todayIso();
+        setChgType(chgType);
+        loadChgOptions();
       },
       swap: function () {
         clearMsg($('swapMsg'));
@@ -1848,6 +1908,111 @@
     });
 
     // ---------- Riwayat ----------
+    // ---------- Pindah shift sendiri ----------
+    let chgType = 'CHANGE';
+    let chgHoursMode = false;
+    let chgOpt = {};   // tanggal -> hasil getShiftOptions
+    function setChgType(t) {
+      if (t === 'CHANGE' && chgHoursMode) t = 'MOVE_OFF';
+      chgType = t;
+      $('chgTypeChange').setAttribute('aria-pressed', String(t === 'CHANGE'));
+      $('chgTypeMove').setAttribute('aria-pressed', String(t === 'MOVE_OFF'));
+      $('chgTypeChange').disabled = chgHoursMode;
+      $('chgChangeBox').hidden = t !== 'CHANGE';
+      $('chgMoveBox').hidden = t !== 'MOVE_OFF';
+      clearMsg($('chgMsg'));
+    }
+    $('chgTypeChange').addEventListener('click', function () { setChgType('CHANGE'); });
+    $('chgTypeMove').addEventListener('click', function () { setChgType('MOVE_OFF'); renderMoveInfo(); });
+
+    function getOpt(date) {
+      if (!date || !current) return Promise.resolve(null);
+      const key = current.id + '|' + date;
+      if (chgOpt[key]) return Promise.resolve(chgOpt[key]);
+      return api('getShiftOptions', current.id, date).then(function (o) { chgOpt[key] = o; return o; });
+    }
+    function loadChgOptions() {
+      const date = $('chgDate').value;
+      const info = $('chgInfo');
+      const sel = $('chgTo');
+      if (!date) return;
+      info.hidden = false; info.className = 'ot-state'; info.textContent = 'Mengecek jadwal…';
+      getOpt(date).then(function (o) {
+        if (!o) return;
+        chgHoursMode = !!o.hoursMode;
+        if (chgHoursMode && chgType === 'CHANGE') setChgType('MOVE_OFF');
+        if (chgHoursMode) { $('chgTypeChange').disabled = true; }
+        if (o.error) { info.className = 'ot-state running'; info.textContent = o.error; sel.innerHTML = '<option value="">-</option>'; return; }
+        info.textContent = 'Jadwal kamu ' + fmtDate(date) + ': ' + (o.currentLabel || '(kosong)');
+        if (o.isOff || o.isLeave || !o.current) {
+          info.className = 'ot-state running';
+          info.textContent += o.isOff ? '. Untuk masuk di hari libur, pakai "Pindah hari libur".' : '. Tanggal ini tidak bisa diganti shift.';
+          sel.innerHTML = '<option value="">-</option>';
+          return;
+        }
+        const opts = (o.shifts || []).filter(function (x) { return x.code.toUpperCase() !== String(o.current).toUpperCase(); });
+        sel.innerHTML = opts.length
+          ? '<option value="">Pilih shift</option>' + opts.map(function (x) { return '<option value="' + esc(x.code) + '">' + esc(x.label) + '</option>'; }).join('')
+          : '<option value="">Tidak ada shift lain untuk posisi kamu</option>';
+      }).catch(function (err) { info.className = 'ot-state running'; info.textContent = err.message; });
+    }
+    $('chgDate').addEventListener('change', loadChgOptions);
+
+    function renderMoveInfo() {
+      const a = $('chgOff').value, b = $('chgNew').value;
+      const box = $('chgMoveInfo');
+      if (!a && !b) { box.hidden = true; return; }
+      box.hidden = false; box.className = 'ot-state'; box.textContent = 'Mengecek jadwal…';
+      Promise.all([getOpt(a), getOpt(b)]).then(function (r) {
+        const oa = r[0], ob = r[1];
+        const lines = [];
+        let bad = false;
+        if (oa) {
+          if (oa.error) { lines.push(oa.error); bad = true; }
+          else if (!oa.isOff) { lines.push(fmtDate(a) + ' bukan hari libur kamu (jadwal: ' + (oa.currentLabel || 'kosong') + ').'); bad = true; }
+        }
+        if (ob) {
+          if (ob.error) { lines.push(ob.error); bad = true; }
+          else if (ob.isOff || !ob.current) { lines.push(fmtDate(b) + ' sudah libur/kosong. Pilih tanggal kamu masuk kerja.'); bad = true; }
+          else if (ob.isLeave) { lines.push(fmtDate(b) + ' sudah tercatat ' + ob.current + '.'); bad = true; }
+        }
+        if (!bad && oa && ob) {
+          lines.push(fmtDate(a) + ': ' + oa.currentLabel + ' menjadi ' + ob.currentLabel);
+          lines.push(fmtDate(b) + ': ' + ob.currentLabel + ' menjadi ' + oa.currentLabel);
+        }
+        box.className = 'ot-state' + (bad ? ' running' : '');
+        box.innerHTML = lines.map(esc).join('<br>') || 'Pilih kedua tanggal.';
+      }).catch(function (err) { box.className = 'ot-state running'; box.textContent = err.message; });
+    }
+    $('chgOff').addEventListener('change', renderMoveInfo);
+    $('chgNew').addEventListener('change', renderMoveInfo);
+
+    $('chgSubmit').addEventListener('click', function () {
+      const msg = $('chgMsg');
+      const reason = $('chgReason').value.trim();
+      const data = { type: chgType, reason: reason };
+      if (chgType === 'CHANGE') {
+        data.date1 = $('chgDate').value; data.toCode = $('chgTo').value;
+        if (!data.date1) return showMsg(msg, 'error', 'Isi tanggal.');
+        if (!data.toCode) return showMsg(msg, 'error', 'Pilih shift tujuan.');
+      } else {
+        data.date1 = $('chgOff').value; data.date2 = $('chgNew').value;
+        if (!data.date1 || !data.date2) return showMsg(msg, 'error', 'Isi tanggal libur lama dan libur baru.');
+        if (data.date1 === data.date2) return showMsg(msg, 'error', 'Tanggal libur lama dan baru tidak boleh sama.');
+      }
+      if (!reason) return showMsg(msg, 'error', 'Tulis alasan perubahan jadwal.');
+      const btn = $('chgSubmit');
+      busy(btn, true);
+      clearMsg(msg);
+      api('submitShiftChange', current.id, data).then(function (res) {
+        $('chgReason').value = '';
+        chgOpt = {};
+        afterSubmit($('sheet-change'), 'Pengajuan pindah shift terkirim (' + res.requestId + '). Menunggu persetujuan.');
+      }).catch(function (err) {
+        showMsg(msg, 'error', err.message);
+      }).finally(function () { busy(btn, false); });
+    });
+
     function renderHistoryShell() {
       if (!current) {
         $('historyNoEmployee').hidden = false;
@@ -2037,6 +2202,23 @@
               canWithdraw: mine,
               partnerWaiting: !mine && String(r.status).toUpperCase() === 'WAITING_PARTNER'
             })) });
+        });
+      }
+
+      if (featureData && featureData.changes && (f === 'all' || f === 'change')) {
+        featureData.changes.forEach(function (r) {
+          const move = r.type === 'MOVE_OFF';
+          const sub = move
+            ? 'Libur ' + fmtDate(r.date1) + ' pindah ke ' + fmtDate(r.date2)
+            : fmtDate(r.date1) + ' · ' + r.from1 + ' menjadi ' + r.to1;
+          out.push({ key: r.date1, html: item(move ? 'Pindah hari libur' : 'Ganti shift', sub, shownStatus(r.status, r.cancelRequest), [
+            ['ID', r.id],
+            [move ? fmtDate(r.date1) : 'Perubahan', move ? r.from1 + ' menjadi ' + r.to1 : r.from1 + ' menjadi ' + r.to1],
+            [move ? fmtDate(r.date2) : '', move ? r.from2 + ' menjadi ' + r.to2 : ''],
+            ['Alasan', r.reason], ['Diproses oleh', r.approver], ['Waktu proses', r.processed],
+            [String(r.status).toUpperCase() === 'REJECTED' ? 'Alasan ditolak' : 'Catatan', r.note],
+            ['Alasan pembatalan', r.cancelReason]
+          ], cancelActions(r.id, r.status, r.cancelRequest, { firstDate: [r.date1, r.date2].filter(Boolean).sort()[0] })) });
         });
       }
 

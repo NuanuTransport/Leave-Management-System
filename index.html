@@ -163,7 +163,7 @@
       color: var(--muted);
       margin-top: 6px;
     }
-    input[type="text"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
+    input[type="text"], input[type="password"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
       width: 100%;
       min-height: 48px;
       padding: 12px 14px;
@@ -190,7 +190,7 @@
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .row-2 label { margin-top: 14px; }
     .row-2 > div { min-width: 0; }
-    input[type="date"] { min-width: 0; -webkit-appearance: none; appearance: none; }
+    input[type="date"], input[type="time"] { min-width: 0; -webkit-appearance: none; appearance: none; }
 
     .btn {
       display: inline-flex;
@@ -766,23 +766,26 @@
 
         <div class="card">
           <h2>Input lembur</h2>
-          <p>Pilih karyawan, isi tanggal dan jumlah jam lembur.</p>
+          <p>Pilih karyawan, lalu isi tanggal, jam mulai, dan jam selesai lembur.</p>
           <label for="otEmpSearch">Karyawan</label>
           <div class="picker">
             <input type="text" id="otEmpSearch" autocomplete="off" placeholder="Ketik nama atau ID">
             <div class="suggestions" id="otEmpSuggestions" role="listbox" hidden></div>
           </div>
           <div class="ct-mini" id="otEmpInfo" hidden></div>
+          <label for="otDate">Tanggal lembur</label>
+          <input type="date" id="otDate">
           <div class="row-2">
             <div>
-              <label for="otDate">Tanggal lembur</label>
-              <input type="date" id="otDate">
+              <label for="otStart">Jam mulai</label>
+              <input type="time" id="otStart" step="300">
             </div>
             <div>
-              <label for="otHours">Jumlah jam</label>
-              <input type="number" id="otHours" min="0.5" max="24" step="0.5" inputmode="decimal" placeholder="Contoh: 4">
+              <label for="otEnd">Jam selesai</label>
+              <input type="time" id="otEnd" step="300">
             </div>
           </div>
+          <div class="field-hint" id="otHoursInfo">Jumlah jam dihitung otomatis. Jam selesai lewat tengah malam juga bisa.</div>
           <label for="otNote">Keterangan</label>
           <input type="text" id="otNote" maxlength="300" placeholder="Contoh: antar tamu event malam">
           <button class="btn btn-primary" type="button" id="otSave">Simpan lembur</button>
@@ -2316,17 +2319,19 @@
     $('otSave').addEventListener('click', function () {
       const btn = this, m = $('otMsg');
       clearMsg(m);
-      const hours = Number(String($('otHours').value).replace(',', '.'));
       const date = $('otDate').value;
+      const start = $('otStart').value, end = $('otEnd').value;
+      const hours = otDuration(start, end);
       if (!otEmp) { showMsg(m, 'error', 'Pilih karyawan dari daftar.'); return; }
       if (!date) { showMsg(m, 'error', 'Isi tanggal lembur.'); return; }
       if (date > todayIso()) { showMsg(m, 'error', 'Tanggal lembur tidak boleh di masa depan.'); return; }
-      if (!isFinite(hours) || hours <= 0 || hours > 24) { showMsg(m, 'error', 'Jumlah jam harus antara 0,5 sampai 24.'); return; }
+      if (!start || !end) { showMsg(m, 'error', 'Isi jam mulai dan jam selesai lembur.'); return; }
+      if (!(hours > 0)) { showMsg(m, 'error', 'Durasi lembur tidak valid.'); return; }
       busy(btn, true, 'Menyimpan…');
-      adminApi('adminAddOvertime', { employeeId: otEmp.id, date: date, hours: hours, note: $('otNote').value.trim() })
+      adminApi('adminAddOvertime', { employeeId: otEmp.id, date: date, startTime: start, endTime: end, note: $('otNote').value.trim() })
         .then(function (res) {
-          showMsg(m, 'success', 'Tersimpan: ' + res.name + ' +' + res.hours + ' jam. Saldo CT sekarang ' + res.balance.availableHours + ' jam.');
-          $('otHours').value = '';
+          showMsg(m, 'success', 'Tersimpan: ' + res.name + ' ' + (res.range ? res.range + ' ' : '') + '(+' + res.hours + ' jam). Saldo CT sekarang ' + res.balance.availableHours + ' jam.');
+          $('otStart').value = ''; $('otEnd').value = ''; updateOtHours();
           $('otNote').value = '';
           showOtEmpBalance();
           loadOtList();
@@ -2334,6 +2339,23 @@
         .catch(function (err) { showMsg(m, 'error', err.message); })
         .then(function () { busy(btn, false); });
     });
+
+    // Durasi lembur dari jam mulai & selesai (lewat tengah malam = +24 jam)
+    function otDuration(start, end) {
+      if (!start || !end) return 0;
+      const a = start.split(':').map(Number), b = end.split(':').map(Number);
+      let mins = (b[0] * 60 + b[1]) - (a[0] * 60 + a[1]);
+      if (mins <= 0) mins += 24 * 60;
+      return Math.round(mins / 60 * 100) / 100;
+    }
+    function updateOtHours() {
+      const h = otDuration($('otStart').value, $('otEnd').value);
+      $('otHoursInfo').textContent = h > 0
+        ? 'Total lembur: ' + String(h).replace('.', ',') + ' jam' + ($('otEnd').value <= $('otStart').value ? ' (selesai keesokan hari)' : '')
+        : 'Jumlah jam dihitung otomatis. Jam selesai lewat tengah malam juga bisa.';
+    }
+    $('otStart').addEventListener('input', updateOtHours);
+    $('otEnd').addEventListener('input', updateOtHours);
 
     function loadOtList() {
       if (!admin) return;
@@ -2345,7 +2367,7 @@
         list.innerHTML = rows.map(function (r) {
           const cancelled = r.status !== 'APPROVED';
           return '<div class="ot-row' + (cancelled ? ' cancelled' : '') + '">' +
-            '<div><strong>' + esc(r.name) + '</strong> · ' + esc(fmtDate(r.date)) + '</div>' +
+            '<div><strong>' + esc(r.name) + '</strong> · ' + esc(fmtDate(r.date)) + (r.range ? ' · ' + esc(r.range) : '') + '</div>' +
             '<div class="ot-h">' + esc(r.hours) + ' jam</div>' +
             '<div class="ot-meta">' + (r.note ? esc(r.note) + ' · ' : '') + 'oleh ' + esc(r.by || '-') +
               (/telegram/i.test(r.source) ? ' (Telegram)' : /web/i.test(r.source) ? ' (Web)' : '') +

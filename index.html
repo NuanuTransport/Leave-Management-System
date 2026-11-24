@@ -286,6 +286,13 @@
     }
     .bal { padding: 0 8px; border-left: 1px solid rgba(255,255,255,.14); }
     .bal:first-child { border-left: 0; padding-left: 0; }
+    /* Tim taxi: 4 saldo (AL, DP, carryover, EO) -> 2 x 2 di HP, 4 kolom di layar lebar */
+    .balances.has-eo { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
+    .balances.has-eo .bal:nth-child(3) { border-left: 0; padding-left: 0; }
+    @media (min-width: 560px) {
+      .balances.has-eo { grid-template-columns: repeat(4, 1fr); }
+      .balances.has-eo .bal:nth-child(3) { border-left: 1px solid rgba(255,255,255,.14); padding-left: 8px; }
+    }
     .bal-num {
       font-size: 34px;
       line-height: 1;
@@ -658,7 +665,7 @@
             </div>
           </div>
 
-          <div class="balances">
+          <div class="balances" id="balances">
             <div class="bal">
               <div class="bal-num" id="bAL">–</div>
               <div class="bal-label">Sisa cuti tahunan (AL)</div>
@@ -670,6 +677,10 @@
             <div class="bal">
               <div class="bal-num" id="bCO">–</div>
               <div class="bal-label" id="bCOLabel">Estimasi carryover</div>
+            </div>
+            <div class="bal" id="bEOBox" hidden>
+              <div class="bal-num" id="bEO">–</div>
+              <div class="bal-label">Sisa libur tambahan (EO)</div>
             </div>
           </div>
 
@@ -1381,7 +1392,7 @@
     function numText(v) { return v === null || v === undefined || v === '' ? '–' : String(v); }
 
     function loadBalance() {
-      ['bAL', 'bDP', 'bCO'].forEach(function (id) { $(id).innerHTML = '…'; });
+      ['bAL', 'bDP', 'bCO', 'bEO'].forEach(function (id) { $(id).innerHTML = '…'; });
       $('balTable').innerHTML = '';
       $('balNote').textContent = '';
       api('getLeaveBalance', current.id).then(function (b) {
@@ -1402,12 +1413,20 @@
           ['Carryover AL', b.carryoverAL != null ? b.carryoverAL : b.alCarryoverRemaining],
           ['Carryover DP', b.carryoverDP != null ? b.carryoverDP : b.dpCarryoverRemaining]
         ];
+        // Saldo EO hanya untuk tim taxi
+        const eo = b.eo || {};
+        $('bEOBox').hidden = !eo.eligible;
+        $('balances').classList.toggle('has-eo', !!eo.eligible);
+        if (eo.eligible) {
+          $('bEO').innerHTML = esc(numText(eo.remaining)) + unit;
+          rows.push(['EO diterima', eo.added], ['EO terpakai', eo.used]);
+        }
         $('balTable').innerHTML = rows.map(function (r) {
           return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(numText(r[1])) + ' hari</td></tr>';
         }).join('');
         $('balNote').textContent = b.alCarryoverStatus || '';
       }).catch(function (err) {
-        ['bAL', 'bDP', 'bCO'].forEach(function (id) { $(id).textContent = '–'; });
+        ['bAL', 'bDP', 'bCO', 'bEO'].forEach(function (id) { $(id).textContent = '–'; });
         $('balNote').textContent = err.message;
         $('balDetail').open = true;
       });

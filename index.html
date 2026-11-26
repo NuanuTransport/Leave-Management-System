@@ -591,6 +591,22 @@
     .card { background: var(--paper); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
     .card h2 { margin: 0 0 4px; font-size: 18px; }
     .card > p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .top-actions { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+    .appr-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .appr-tools label { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+    .appr-item { border: 1px solid #E4E9E2; border-radius: 12px; padding: 12px; margin-bottom: 10px; background: #fff; }
+    .appr-item.done { opacity: .55; }
+    .appr-head { display: flex; gap: 10px; align-items: flex-start; }
+    .appr-head input[type=checkbox] { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--canopy); }
+    .appr-title { font-weight: 700; }
+    .appr-type { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--fern-soft); color: var(--canopy); margin-left: 6px; }
+    .appr-text { white-space: pre-wrap; font-size: 13px; color: var(--muted); margin: 8px 0 0 32px; overflow-wrap: anywhere; }
+    .appr-text a { color: var(--fern); font-weight: 600; }
+    .appr-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0 32px; }
+    .appr-actions .btn, .appr-reject .btn { min-height: 40px; padding: 8px 14px; font-size: 14px; width: auto; margin-top: 0; }
+    .appr-reject { margin: 10px 0 0 32px; }
+    .appr-reject textarea { min-height: 70px; margin-bottom: 8px; }
+    .appr-result { margin: 8px 0 0 32px; font-size: 13px; font-weight: 700; }
     .admin-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--muted); }
     .admin-bar strong { color: var(--ink); }
     .ct-mini { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--fern-soft); color: var(--canopy); font-size: 14px; }
@@ -618,7 +634,10 @@
         <h1>Cuti &amp; Izin</h1>
         <p>Pengajuan cuti, sakit, CT, dan tukar shift karyawan Nuanu</p>
       </div>
-      <button class="admin-link" type="button" id="adminOpen" aria-pressed="false">🔒 Admin</button>
+      <div class="top-actions">
+        <button class="admin-link" type="button" id="apprOpen" aria-pressed="false">✔ Approval</button>
+        <button class="admin-link" type="button" id="adminOpen" aria-pressed="false">🔒 Admin</button>
+      </div>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Menu utama">
@@ -753,6 +772,39 @@
         </div>
 
         <div id="historyList"><div class="loading">Mengambil riwayat…</div></div>
+      </div>
+    </section>
+
+    <!-- ================= APPROVAL ================= -->
+    <section class="panel" id="panel-approval" hidden>
+      <div class="card" id="apprLoginCard">
+        <h2>Masuk approval</h2>
+        <p>Khusus manager/SPV untuk menyetujui atau menolak pengajuan cuti, sakit, CT, dan pindah shift.</p>
+        <label for="apprName">Nama approver</label>
+        <select id="apprName"><option value="">Memuat daftar…</option></select>
+        <label for="apprPin">PIN</label>
+        <input type="password" id="apprPin" inputmode="numeric" autocomplete="current-password">
+        <button class="btn btn-primary" type="button" id="apprLoginBtn">Masuk</button>
+        <div class="msg" id="apprLoginMsg"></div>
+      </div>
+
+      <div id="apprArea" hidden>
+        <div class="admin-bar">
+          <span>Masuk sebagai <strong id="apprWho"></strong></span>
+          <button class="btn btn-ghost" type="button" id="apprLogoutBtn">Keluar</button>
+        </div>
+        <div class="card">
+          <h2>Menunggu persetujuan</h2>
+          <div class="appr-tools">
+            <label><input type="checkbox" id="apprAll"> Pilih semua</label>
+            <div class="row-btns" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost" type="button" id="apprReload" style="width:auto">Muat ulang</button>
+              <button class="btn btn-primary" type="button" id="apprBulk" style="width:auto;margin-top:0" disabled>Approve terpilih</button>
+            </div>
+          </div>
+          <div class="msg" id="apprMsg"></div>
+          <div id="apprList"><div class="loading">Memuat…</div></div>
+        </div>
       </div>
     </section>
 
@@ -1233,9 +1285,12 @@
       $('panel-data').hidden = name !== 'data';
       $('panel-history').hidden = name !== 'history';
       $('panel-admin').hidden = name !== 'admin';
+      $('panel-approval').hidden = name !== 'approval';
       $('adminOpen').setAttribute('aria-pressed', String(name === 'admin'));
+      $('apprOpen').setAttribute('aria-pressed', String(name === 'approval'));
       if (name === 'history') renderHistoryShell();
       if (name === 'admin') showAdmin();
+      if (name === 'approval') showApproval();
     }
     $('tab-data').addEventListener('click', function () { setTab('data'); });
     $('tab-history').addEventListener('click', function () { setTab('history'); });
@@ -2251,6 +2306,161 @@
       out.sort(function (a, b) { return String(b.key || '').localeCompare(String(a.key || '')); });
       $('historyList').innerHTML = '<div class="hist-list">' + out.map(function (o) { return o.html; }).join('') + '</div>';
     }
+
+    // ---------- Approval (manager/SPV) ----------
+    const APPR_KEY = 'nuanu_leave_approver';
+    let approver = null; // { token, name }
+    let apprItems = [];
+    try { approver = JSON.parse(sessionStorage.getItem(APPR_KEY) || 'null'); } catch (e) { approver = null; }
+    function saveApprover() {
+      try { if (approver) sessionStorage.setItem(APPR_KEY, JSON.stringify(approver)); else sessionStorage.removeItem(APPR_KEY); } catch (e) {}
+    }
+    function apprApi(fn) {
+      const args = Array.prototype.slice.call(arguments, 1);
+      return api.apply(null, [fn, approver ? approver.token : ''].concat(args)).catch(function (err) {
+        if (String(err.message).indexOf('APPROVER_EXPIRED') === 0 || /Sesi approval berakhir/.test(err.message)) {
+          approver = null; saveApprover(); showApproval();
+          showMsg($('apprLoginMsg'), 'error', 'Sesi approval berakhir. Silakan masuk lagi.');
+          throw new Error('Sesi approval berakhir. Silakan masuk lagi.');
+        }
+        throw err;
+      });
+    }
+    let apprNamesLoaded = false;
+    function showApproval() {
+      const on = !!approver;
+      $('apprLoginCard').hidden = on;
+      $('apprArea').hidden = !on;
+      if (on) { $('apprWho').textContent = approver.name; loadApprovals(); return; }
+      if (!apprNamesLoaded) {
+        api('approverList').then(function (names) {
+          apprNamesLoaded = true;
+          $('apprName').innerHTML = '<option value="">Pilih nama</option>' +
+            names.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+        }).catch(function (err) { showMsg($('apprLoginMsg'), 'error', err.message); });
+      }
+    }
+    function linkify(text) {
+      return esc(text).replace(/(https:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">Lihat surat dokter</a>');
+    }
+    function apprSelected() {
+      return Array.prototype.slice.call(document.querySelectorAll('.appr-check:checked')).map(function (c) { return c.value; });
+    }
+    function apprUpdateBulk() {
+      const n = apprSelected().length;
+      $('apprBulk').disabled = !n;
+      $('apprBulk').textContent = n ? 'Approve terpilih (' + n + ')' : 'Approve terpilih';
+      const boxes = document.querySelectorAll('.appr-check:not(:disabled)');
+      $('apprAll').checked = boxes.length > 0 && n === boxes.length;
+    }
+    function renderApprovals() {
+      const box = $('apprList');
+      if (!apprItems.length) { box.innerHTML = '<p class="item-note">Tidak ada pengajuan yang menunggu persetujuan.</p>'; apprUpdateBulk(); return; }
+      box.innerHTML = apprItems.map(function (it, i) {
+        const text = it.text + (it.medical ? '\n' + it.medical : '');
+        return '<div class="appr-item" id="appr-' + i + '">' +
+          '<div class="appr-head"><input type="checkbox" class="appr-check" value="' + esc(it.id) + '" aria-label="Pilih ' + esc(it.id) + '">' +
+          '<div><span class="appr-title">' + esc(it.name) + '</span><span class="appr-type">' + esc(it.type) + '</span></div></div>' +
+          '<div class="appr-text">' + linkify(text) + '</div>' +
+          '<div class="appr-actions"><button class="btn btn-ok" type="button" data-appr="ok" data-i="' + i + '">Approve</button>' +
+          '<button class="btn btn-line" type="button" data-appr="no" data-i="' + i + '">Reject</button></div>' +
+          '<div class="appr-reject" hidden><textarea placeholder="Alasan penolakan (wajib)"></textarea>' +
+          '<button class="btn btn-stop" type="button" data-appr="rejsend" data-i="' + i + '" style="width:auto">Kirim penolakan</button></div>' +
+          '<div class="appr-result" hidden></div></div>';
+      }).join('');
+      apprUpdateBulk();
+    }
+    function loadApprovals() {
+      clearMsg($('apprMsg'));
+      $('apprList').innerHTML = '<div class="loading">Memuat…</div>';
+      apprApi('approverPending').then(function (items) {
+        apprItems = items || [];
+        renderApprovals();
+      }).catch(function (err) {
+        $('apprList').innerHTML = '';
+        showMsg($('apprMsg'), 'error', err.message);
+      });
+    }
+    function apprMarkDone(id, ok, text) {
+      const i = apprItems.findIndex(function (x) { return x.id === id; });
+      if (i === -1) return;
+      const el = $('appr-' + i);
+      if (!el) return;
+      const res = el.querySelector('.appr-result');
+      res.hidden = false;
+      res.textContent = text;
+      res.style.color = ok ? 'var(--canopy)' : '#B42318';
+      if (ok) {
+        el.classList.add('done');
+        el.querySelectorAll('button, input, textarea').forEach(function (b) { b.disabled = true; });
+        const c = el.querySelector('.appr-check'); if (c) c.checked = false;
+      }
+    }
+    function apprDecide(ids, decision, reason, btn) {
+      clearMsg($('apprMsg'));
+      if (btn) busy(btn, true, 'Memproses…');
+      return apprApi('approverDecide', ids, decision, reason || '').then(function (res) {
+        res.done.forEach(function (id) { apprMarkDone(id, true, decision === 'APPROVED' ? 'Disetujui' : 'Ditolak'); });
+        res.failed.forEach(function (f) { apprMarkDone(f.id, false, 'Gagal: ' + f.error); });
+        const msg = (res.done.length ? res.done.length + ' pengajuan ' + (decision === 'APPROVED' ? 'disetujui' : 'ditolak') + '.' : '') +
+          (res.failed.length ? ' ' + res.failed.length + ' gagal, lihat keterangan di masing-masing pengajuan.' : '');
+        showMsg($('apprMsg'), res.failed.length ? 'error' : 'success', msg.trim());
+      }).catch(function (err) {
+        showMsg($('apprMsg'), 'error', err.message);
+      }).then(function () { if (btn) busy(btn, false); apprUpdateBulk(); });
+    }
+    $('apprOpen').addEventListener('click', function () {
+      setTab($('panel-approval').hidden ? 'approval' : 'data');
+    });
+    $('apprLoginBtn').addEventListener('click', function () {
+      const btn = this;
+      clearMsg($('apprLoginMsg'));
+      const name = $('apprName').value, pin = $('apprPin').value.trim();
+      if (!name || !pin) { showMsg($('apprLoginMsg'), 'error', 'Pilih nama dan isi PIN.'); return; }
+      busy(btn, true, 'Memeriksa…');
+      api('approverLogin', name, pin).then(function (res) {
+        approver = res; saveApprover();
+        $('apprPin').value = '';
+        showApproval();
+      }).catch(function (err) {
+        showMsg($('apprLoginMsg'), 'error', err.message);
+      }).then(function () { busy(btn, false); });
+    });
+    $('apprPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('apprLoginBtn').click(); });
+    $('apprLogoutBtn').addEventListener('click', function () {
+      const t = approver && approver.token;
+      approver = null; saveApprover(); showApproval();
+      if (t) api('approverLogout', t).catch(function () {});
+    });
+    $('apprReload').addEventListener('click', loadApprovals);
+    $('apprAll').addEventListener('change', function () {
+      const on = this.checked;
+      document.querySelectorAll('.appr-check:not(:disabled)').forEach(function (c) { c.checked = on; });
+      apprUpdateBulk();
+    });
+    $('apprList').addEventListener('change', function (e) {
+      if (e.target.classList.contains('appr-check')) apprUpdateBulk();
+    });
+    $('apprList').addEventListener('click', function (e) {
+      const b = e.target.closest('button[data-appr]');
+      if (!b) return;
+      const it = apprItems[Number(b.getAttribute('data-i'))];
+      const el = b.closest('.appr-item');
+      const act = b.getAttribute('data-appr');
+      if (act === 'ok') apprDecide([it.id], 'APPROVED', '', b);
+      if (act === 'no') { const r = el.querySelector('.appr-reject'); r.hidden = !r.hidden; if (!r.hidden) r.querySelector('textarea').focus(); }
+      if (act === 'rejsend') {
+        const reason = el.querySelector('textarea').value.trim();
+        if (!reason) { showMsg($('apprMsg'), 'error', 'Tulis alasan penolakan dulu.'); return; }
+        apprDecide([it.id], 'REJECTED', reason, b);
+      }
+    });
+    $('apprBulk').addEventListener('click', function () {
+      const ids = apprSelected();
+      if (!ids.length) return;
+      if (!confirm('Approve ' + ids.length + ' pengajuan terpilih?')) return;
+      apprDecide(ids, 'APPROVED', '', this);
+    });
 
     // ---------- Admin: input lembur ----------
     const ADMIN_KEY = 'nuanu_leave_admin';
